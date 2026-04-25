@@ -99,3 +99,129 @@ sprout-and-soil/
 After pulling the repo, open `project.godot` from the repository root and verify that the seed selection prototype still starts correctly.
 
 Then add the first hidden plant relationship system.
+
+## 2026-04-25 - First hidden relationship prototype
+
+### What changed
+
+- Added all 8 MVP test plants to `PlantData`:
+  - Carrot
+  - Onion
+  - Tomato
+  - Basil
+  - Potato
+  - Bean
+  - Corn
+  - Squash
+- Added `scripts/data/plant_relationship_data.gd` for relationship rules outside UI code.
+- Added first relationship types:
+  - Good
+  - Risky
+  - Special
+- `GardenGrid` now checks newly planted tiles against cardinal neighbors.
+- Discovered relationships are stored in the grid and emitted through a signal.
+- The main scene now shows a short discovery message when a new relationship is found.
+- Tile health labels now react to relationship outcomes:
+  - `Thriving` for helpful neighbors
+  - `Stressed` for risky neighbors
+  - `Curious` for special-pattern hints
+
+### First prototype relationships
+
+- Carrot + Onion: good
+- Tomato + Basil: good
+- Tomato + Potato: risky
+- Corn + Bean: special
+- Corn + Squash: special
+- Bean + Squash: special
+
+### Next recommended step
+
+Add basic growth progression and harvesting so Issue #2 can be completed before turning discoveries into a full garden diary screen.
+
+## 2026-04-25 - Basic watering and harvest loop
+
+### What changed
+
+- Added a `Water Garden` button to advance planted crops by one growth day.
+- Tiles now show `Ready` when a plant reaches its configured growth duration.
+- Tapping a mature planted tile harvests it and clears the bed.
+- Tapping an immature planted tile explains how many days remain.
+- Relationship health now affects harvest feedback:
+  - `Thriving` plants produce a better harvest message.
+  - `Stressed` plants produce a damaged harvest message.
+  - `Curious` plants hint at a special planting pattern.
+- Corn, Bean, and Squash now receive a simple trio bonus when all three exist in the garden.
+
+### Next recommended step
+
+Move discovered relationship history out of the temporary message label and into a first garden diary/codex screen.
+
+## 2026-04-25 - Temporary garden diary
+
+### What changed
+
+- Split the bottom feedback area into:
+  - A status label for the latest action or discovery explanation.
+  - A simple garden diary label for discovered relationships.
+- Relationship discoveries now stay visible after later actions update the status text.
+- Duplicate discoveries are ignored by the diary.
+
+### Next recommended step
+
+Replace the temporary diary label with a proper codex view once the prototype has more relationships and explanations.
+
+## 2026-04-25 - Harvest basket scoring
+
+### What changed
+
+- Added a harvest basket counter near the top of the screen.
+- Harvested plants now produce a small yield:
+  - `Thriving`: 2 baskets
+  - `Healthy` or `Curious`: 1 basket
+  - `Stressed`: 0 baskets
+- Harvest feedback now mentions the yield amount, so plant placement has a visible gameplay result.
+
+### Next recommended step
+
+Add a small garden goal, such as reaching 8 baskets or discovering 3 relationships, so a prototype session has a clear endpoint.
+
+## 2026-04-25 - Starter bed foundation
+
+### What changed
+
+- Added `GardenBed` as a lightweight data object for bed metadata.
+- The current 3x3 board is now represented as the first `Starter Bed`.
+- Garden tiles now store the bed id they belong to.
+- The main scene shows the active bed name above the grid.
+
+### Design direction
+
+The current board remains a small prototype bed, but the code now has a place to grow toward multiple garden beds later.
+
+Future bed ideas:
+
+- Starter Bed
+- Herb Bed
+- Compost Bed
+- Sunny Bed
+- Greenhouse Bed
+
+### Next recommended step
+
+Keep the current 3x3 bed as the tutorial space, then add a second locked/unlocked bed once the first session goal exists.
+
+## 2026-04-25 - Starter bed goal
+
+### What changed
+
+- Added a visible Starter Bed goal:
+  - Collect 8 harvest baskets.
+  - Discover 3 plant relationships.
+- The goal display updates after harvests and new discoveries.
+- Completing both requirements shows a short completion message.
+- The garden grid was moved slightly lower to make room for the goal display.
+
+### Next recommended step
+
+Use the completion state to unlock or preview a second bed, such as a Herb Bed or Sunny Bed.

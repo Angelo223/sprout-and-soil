@@ -15,14 +15,29 @@ In **Sprout & Soil**, players grow colorful garden beds, discover plant relation
 
 ## Current project status
 
-This repository is in the initial setup phase.
+This repository contains the first playable Godot prototype.
 
 Next steps:
 
-1. Create the Godot project locally.
-2. Commit the generated Godot files into this repository.
-3. Define the first MVP gameplay loop.
-4. Build the initial garden grid prototype.
+1. Expand relationship outcomes beyond tile health labels and harvest messages.
+2. Add first prototype art and mobile UI polish.
+3. Add basic save/load for discovered relationships.
+4. Turn the temporary diary label into a full codex screen.
+
+Implemented so far:
+
+- Godot 4 mobile project setup
+- Main garden scene
+- Interactive 3x3 garden grid
+- First garden bed metadata layer for future multi-bed gardens
+- Seed picker with the first 8 test plants
+- Basic hidden plant relationship data
+- First discovery message when neighboring plants reveal a relationship
+- Watering, growth progression, maturity, and simple harvesting
+- Relationship-influenced harvest feedback
+- Temporary garden diary listing discovered relationships
+- Harvest basket counter with better yields from healthy companion planting
+- Starter Bed goal: collect 8 baskets and discover 3 relationships
 
 ## Working title
 
@@ -37,5 +52,5 @@ sprout-and-soil
 Suggested Android package name:
 
 ```text
-com.eifelbytes.sproutandsoil
+com.andreescholl.sproutandsoil
 ```

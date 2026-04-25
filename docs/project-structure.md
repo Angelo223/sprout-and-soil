@@ -57,6 +57,30 @@ sprout-and-soil/
 - Avoid hardcoding plant relationships directly inside UI scripts.
 - The garden simulation should be testable separately from the visual presentation.
 
+## Current prototype structure
+
+The current repository keeps the first prototype small and root-based:
+
+```text
+sprout-and-soil/
+├─ project.godot
+├─ MainScene.tscn
+├─ README.md
+├─ docs/
+│  ├─ development-log.md
+│  ├─ game-concept.md
+│  └─ project-structure.md
+└─ scripts/
+   ├─ main_scene.gd
+   ├─ data/
+   │  ├─ plant_data.gd
+   │  └─ plant_relationship_data.gd
+   └─ garden/
+      ├─ garden_bed.gd
+      ├─ garden_grid.gd
+      └─ garden_tile.gd
+```
+
 ## First prototype target
 
 The first prototype should prove only one thing:

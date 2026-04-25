@@ -21,8 +21,31 @@ const PLANTS := {
 		"display_name": "Basil",
 		"growth_days": 2,
 		"description": "A cozy herb that will later pair well with some crops."
+	},
+	"potato": {
+		"display_name": "Potato",
+		"growth_days": 4,
+		"description": "A sturdy tuber for testing risky plant relationships."
+	},
+	"bean": {
+		"display_name": "Bean",
+		"growth_days": 3,
+		"description": "A climbing plant that can support future special combinations."
+	},
+	"corn": {
+		"display_name": "Corn",
+		"growth_days": 5,
+		"description": "A tall crop that can become part of a companion planting trio."
+	},
+	"squash": {
+		"display_name": "Squash",
+		"growth_days": 4,
+		"description": "A broad-leaf plant for testing special garden layouts."
 	}
 }
+
+static func get_all_plant_ids() -> Array:
+	return PLANTS.keys()
 
 static func get_plant(plant_id: String) -> Dictionary:
 	return PLANTS.get(plant_id, {})
