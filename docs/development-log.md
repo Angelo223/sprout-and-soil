@@ -4,9 +4,7 @@
 
 ### What changed
 
-- Confirmed that the Godot project lives in `sprout-&-soil/`.
-- Kept the repository root available for documentation and planning files.
-- Configured `sprout-&-soil/project.godot` to start `res://MainScene.tscn`.
+- Confirmed the first Godot project setup and test scene.
 - Added an interactive 3x3 garden grid prototype.
 - Clicking/tapping an empty bed plants a test carrot and displays `Carrot Day 1`.
 
@@ -14,17 +12,17 @@
 
 The first prototype has been split into separate responsibilities:
 
-- `sprout-&-soil/scripts/main_scene.gd`
+- `scripts/main_scene.gd`
   - Creates the background, title, hint text, and attaches the garden grid.
-- `sprout-&-soil/scripts/garden/garden_grid.gd`
+- `scripts/garden/garden_grid.gd`
   - Creates and owns the 3x3 grid.
   - Handles tile selection.
   - Plants the current selected seed.
-- `sprout-&-soil/scripts/garden/garden_tile.gd`
+- `scripts/garden/garden_tile.gd`
   - Represents one garden bed.
   - Stores tile index, grid position, planted seed, growth day, and health state.
   - Emits a signal when selected.
-- `sprout-&-soil/scripts/data/plant_data.gd`
+- `scripts/data/plant_data.gd`
   - Stores the first plant definitions.
   - Provides helper methods for display names and growth days.
 
@@ -63,14 +61,41 @@ The current loop is now:
 2. Tap an empty bed.
 3. The selected plant appears in the bed as `Plant Name / Day 1`.
 
+## 2026-04-25 - Move Godot project to repository root
+
+### What changed
+
+- Moved the Godot project out of the former `sprout-&-soil/` subfolder.
+- `project.godot` now lives directly in the repository root.
+- `MainScene.tscn` now lives directly in the repository root.
+- `scripts/` now lives directly in the repository root.
+- `docs/` remains in the repository root and continues to hold project documentation.
+- Root-level `.editorconfig`, `.gitattributes`, `.gitignore`, `icon.svg`, and `icon.svg.import` are used for the Godot project.
+
+### Current expected repository shape
+
+```text
+sprout-and-soil/
+├─ project.godot
+├─ MainScene.tscn
+├─ icon.svg
+├─ icon.svg.import
+├─ README.md
+├─ docs/
+│  ├─ development-log.md
+│  ├─ game-concept.md
+│  └─ project-structure.md
+└─ scripts/
+   ├─ main_scene.gd
+   ├─ data/
+   │  └─ plant_data.gd
+   └─ garden/
+      ├─ garden_grid.gd
+      └─ garden_tile.gd
+```
+
 ### Next recommended step
 
-Add the first hidden plant relationship system.
+After pulling the repo, open `project.godot` from the repository root and verify that the seed selection prototype still starts correctly.
 
-A good first version would check neighboring tiles after planting and store simple relationship discoveries, for example:
-
-- Carrot + Onion = positive discovery
-- Tomato + Basil = positive discovery
-- Tomato + Potato = risky discovery later, once potato exists
-
-The result should not be shown before planting. It should only appear after the player experiences the outcome.
+Then add the first hidden plant relationship system.
