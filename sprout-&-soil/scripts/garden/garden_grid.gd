@@ -4,13 +4,16 @@ extends Node2D
 const GRID_SIZE := 3
 const TILE_SIZE := Vector2(260, 260)
 const TILE_GAP := 24
-const DEFAULT_SEED := "carrot"
 const VIEWPORT_WIDTH := 1080
 
+var selected_seed_id: String = "carrot"
 var tiles: Array[GardenTile] = []
 
 func _ready() -> void:
 	_create_tiles()
+
+func set_selected_seed(seed_id: String) -> void:
+	selected_seed_id = seed_id
 
 func _create_tiles() -> void:
 	var total_size := Vector2(
@@ -33,4 +36,4 @@ func _create_tiles() -> void:
 
 func _on_tile_selected(tile: GardenTile) -> void:
 	if tile.is_empty():
-		tile.plant(DEFAULT_SEED)
+		tile.plant(selected_seed_id)
