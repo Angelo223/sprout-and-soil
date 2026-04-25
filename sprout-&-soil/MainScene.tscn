@@ -1,4 +1,6 @@
-[gd_scene format=3 uid="uid://bivn622gkq66n"]
+[gd_scene load_steps=2 format=3 uid="uid://bivn622gkq66n"]
 
-[node name="Node2D" type="Node2D" unique_id=604459963]
-position = Vector2(3, 0)
+[ext_resource type="Script" path="res://scripts/main_scene.gd" id="1_main_scene"]
+
+[node name="MainScene" type="Node2D" unique_id=604459963]
+script = ExtResource("1_main_scene")
