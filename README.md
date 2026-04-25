@@ -37,5 +37,5 @@ sprout-and-soil
 Suggested Android package name:
 
 ```text
-com.andreescholl.sproutandsoil
+com.eifelbytes.sproutandsoil
 ```
