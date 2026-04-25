@@ -47,7 +47,7 @@ func close() -> void:
 func _build_overlay() -> void:
 	var dim := ColorRect.new()
 	dim.name = "Dim"
-	dim.color = Color(0.10, 0.16, 0.10, 0.55)
+	dim.color = Color(0.10, 0.16, 0.10, 0.78)
 	dim.position = Vector2.ZERO
 	dim.size = Vector2(1080, 1920)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -55,9 +55,9 @@ func _build_overlay() -> void:
 
 	var paper := PanelContainer.new()
 	paper.name = "Paper"
-	paper.position = Vector2(60, 220)
-	paper.size = Vector2(960, 1480)
-	paper.custom_minimum_size = Vector2(960, 1480)
+	paper.position = Vector2(40, 100)
+	paper.size = Vector2(1000, 1720)
+	paper.custom_minimum_size = Vector2(1000, 1720)
 	var paper_style := StyleBoxFlat.new()
 	paper_style.bg_color = PAPER_COLOR
 	paper_style.corner_radius_top_left = 24
@@ -214,7 +214,7 @@ func _build_entry(discovery: Dictionary) -> Control:
 	entry_style.corner_radius_bottom_right = 14
 	entry_style.border_width_left = 12
 	entry_style.border_color = TYPE_COLORS.get(relationship_type, TYPE_COLORS[PlantRelationshipData.TYPE_NEUTRAL])
-	entry_style.content_margin_left = 22
+	entry_style.content_margin_left = 34
 	entry_style.content_margin_right = 22
 	entry_style.content_margin_top = 14
 	entry_style.content_margin_bottom = 14
