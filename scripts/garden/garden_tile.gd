@@ -9,6 +9,8 @@ var bed_id: String = ""
 var plant_id: String = ""
 var growth_day: int = 0
 var health: String = "empty"
+var normal_style: StyleBoxFlat
+var hover_style: StyleBoxFlat
 
 func _ready() -> void:
 	pressed.connect(_on_pressed)
@@ -39,11 +41,24 @@ func plant(seed_id: String) -> void:
 	health = "healthy"
 	_update_label()
 
-func grow_one_day() -> void:
+func load_state(state: Dictionary) -> void:
+	plant_id = state.get("plant_id", "")
+	growth_day = state.get("growth_day", 0)
+	health = state.get("health", "empty")
+	_update_label()
+
+func get_state() -> Dictionary:
+	return {
+		"plant_id": plant_id,
+		"growth_day": growth_day,
+		"health": health
+	}
+
+func grow_days(day_count: int = 1) -> void:
 	if is_empty() or is_mature():
 		return
 
-	growth_day += 1
+	growth_day = min(growth_day + day_count, PlantData.get_growth_days(plant_id))
 	_update_label()
 
 func get_days_until_mature() -> int:
@@ -79,15 +94,20 @@ func _on_pressed() -> void:
 	tile_selected.emit(self)
 
 func _apply_tile_theme() -> void:
-	var normal_style := StyleBoxFlat.new()
-	normal_style.bg_color = Color(0.33, 0.42, 0.31)
+	normal_style = StyleBoxFlat.new()
+	normal_style.bg_color = _get_tile_color()
 	normal_style.corner_radius_top_left = 8
 	normal_style.corner_radius_top_right = 8
 	normal_style.corner_radius_bottom_left = 8
 	normal_style.corner_radius_bottom_right = 8
+	normal_style.border_width_left = 4
+	normal_style.border_width_top = 4
+	normal_style.border_width_right = 4
+	normal_style.border_width_bottom = 4
+	normal_style.border_color = Color(0.26, 0.33, 0.24)
 
-	var hover_style := normal_style.duplicate() as StyleBoxFlat
-	hover_style.bg_color = Color(0.39, 0.49, 0.36)
+	hover_style = normal_style.duplicate() as StyleBoxFlat
+	hover_style.bg_color = _get_tile_hover_color()
 
 	add_theme_stylebox_override("normal", normal_style)
 	add_theme_stylebox_override("hover", hover_style)
@@ -100,6 +120,7 @@ func _apply_tile_theme() -> void:
 func _update_label() -> void:
 	if is_empty():
 		text = "Empty Bed"
+		_refresh_tile_colors()
 		return
 
 	var health_text := ""
@@ -111,3 +132,32 @@ func _update_label() -> void:
 		mature_text = "\nReady"
 
 	text = "%s\nDay %s%s%s" % [PlantData.get_display_name(plant_id), growth_day, health_text, mature_text]
+	_refresh_tile_colors()
+
+func _refresh_tile_colors() -> void:
+	if normal_style == null or hover_style == null:
+		return
+
+	normal_style.bg_color = _get_tile_color()
+	hover_style.bg_color = _get_tile_hover_color()
+
+func _get_tile_color() -> Color:
+	if is_empty():
+		return Color(0.45, 0.32, 0.22)
+
+	if is_mature():
+		return Color(0.53, 0.43, 0.20)
+
+	match health:
+		"thriving":
+			return Color(0.30, 0.50, 0.26)
+		"stressed":
+			return Color(0.52, 0.34, 0.25)
+		"curious":
+			return Color(0.34, 0.44, 0.56)
+		_:
+			return Color(0.35, 0.45, 0.31)
+
+func _get_tile_hover_color() -> Color:
+	var color: Color = _get_tile_color()
+	return color.lightened(0.08)

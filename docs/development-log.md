@@ -225,3 +225,55 @@ Keep the current 3x3 bed as the tutorial space, then add a second locked/unlocke
 ### Next recommended step
 
 Use the completion state to unlock or preview a second bed, such as a Herb Bed or Sunny Bed.
+
+## 2026-04-25 - Unlockable Herb Bed
+
+### What changed
+
+- Added a simple bed selector with:
+  - Starter Bed
+  - Herb Bed
+- Herb Bed starts locked.
+- Completing the Starter Bed goal unlocks the Herb Bed.
+- `GardenGrid` now stores separate tile state per bed.
+- Switching beds saves the current bed and loads the selected bed.
+
+### Current limitation
+
+The Herb Bed currently uses the same 3x3 layout and rules as the Starter Bed. It exists to prove multi-bed garden structure before adding unique bed traits.
+
+### Next recommended step
+
+Give Herb Bed its own identity, such as faster Basil growth, better herb relationships, or a smaller curated seed set.
+
+## 2026-04-25 - Herb Bed identity pass
+
+### What changed
+
+- Added simple plant types to `PlantData`.
+- Basil is now marked as an herb.
+- Herb Bed now has a prototype trait:
+  - Herbs grow 2 days per watering instead of 1.
+  - Herbs produce +1 basket when harvested in Herb Bed, unless stressed.
+- Harvest feedback mentions the Herb Bed bonus.
+
+### Current limitation
+
+Only Basil currently uses the herb type because the prototype plant set has one herb. This trait will matter more once Garlic, Lavender, Rosemary, Chamomile, or Mint are added.
+
+### Next recommended step
+
+Add one or two new herb plants, such as Garlic and Lavender, then give Herb Bed its own curated seed set.
+
+## 2026-04-25 - Relationship explanation pass
+
+### What changed
+
+- Replaced placeholder relationship text with more factual companion-planting explanations.
+- Added short reasons for discovery messages.
+- Kept the language cautious where companion-planting effects can vary by real garden conditions.
+- Shortened diary entries so the bottom UI stays readable.
+
+### Next recommended step
+
+Add a proper relationship detail view later, so the diary can show the short entry first and open the full explanation on demand.

@@ -69,6 +69,7 @@ sprout-and-soil/
 ├─ docs/
 │  ├─ development-log.md
 │  ├─ game-concept.md
+│  ├─ progression-and-art-direction.md
 │  └─ project-structure.md
 └─ scripts/
    ├─ main_scene.gd

@@ -10,32 +10,38 @@ const RELATIONSHIPS := {
 	"basil|tomato": {
 		"type": TYPE_GOOD,
 		"title": "Helpful neighbors",
-		"explanation": "Tomato and Basil grow happily together. The basil keeps the bed feeling balanced."
+		"explanation": "Basil is commonly planted near tomatoes because it attracts pollinators and beneficial insects. Some gardeners also use aromatic herbs to make pest finding harder, though that effect depends on the garden.",
+		"short_reason": "Basil can attract useful insects near tomato plants."
 	},
 	"carrot|onion": {
 		"type": TYPE_GOOD,
 		"title": "Root friends",
-		"explanation": "Carrot and Onion make calm neighbors. Their different scents help the bed stay healthy."
+		"explanation": "Carrot and onion use the soil differently, so they do not compete in exactly the same way. Onion scent is also often used in companion planting to make it harder for carrot pests to find carrots.",
+		"short_reason": "Different root shapes reduce competition, and onion scent may confuse carrot pests."
 	},
 	"potato|tomato": {
 		"type": TYPE_RISKY,
 		"title": "Shared trouble",
-		"explanation": "Tomato and Potato are too closely related here. Pests and plant sickness can spread between them."
+		"explanation": "Tomato and potato are both nightshades. Because they are close relatives, they can share diseases such as blight and attract similar pests, so many gardeners avoid planting them close together.",
+		"short_reason": "Both are nightshades, so diseases and pests can spread between them."
 	},
 	"bean|corn": {
 		"type": TYPE_SPECIAL,
 		"title": "Climbing support",
-		"explanation": "Bean can climb beside Corn. This looks like the start of a special garden pattern."
+		"explanation": "Pole beans can use corn stalks as a living support. Beans also fix nitrogen with soil bacteria, which can improve soil fertility over time.",
+		"short_reason": "Corn gives beans a support to climb."
 	},
 	"bean|squash": {
 		"type": TYPE_SPECIAL,
 		"title": "Living cover",
-		"explanation": "Bean and Squash can share space well. Squash leaves help cover the soil."
+		"explanation": "Squash leaves spread across the ground and shade the soil. That living cover helps keep moisture in and can make it harder for weeds to take over around beans.",
+		"short_reason": "Squash leaves shade the soil and help protect moisture."
 	},
 	"corn|squash": {
 		"type": TYPE_SPECIAL,
 		"title": "Tall and low",
-		"explanation": "Corn and Squash use different garden space. This may become stronger with another crop nearby."
+		"explanation": "Corn grows upward while squash spreads low across the ground, so they use different layers of the garden. Together with beans, this becomes the classic Three Sisters planting pattern.",
+		"short_reason": "Corn grows tall while squash covers the ground."
 	}
 }
 

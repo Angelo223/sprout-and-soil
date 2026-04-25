@@ -13,6 +13,13 @@ In **Sprout & Soil**, players grow colorful garden beds, discover plant relation
 - Failed or damaged harvests explain what went wrong
 - No pay-to-win monetization; optional purchases should focus on cosmetics, decoration, and personal expression
 
+## Design documents
+
+- [Game concept](docs/game-concept.md)
+- [Progression and art direction](docs/progression-and-art-direction.md)
+- [Project structure](docs/project-structure.md)
+- [Development log](docs/development-log.md)
+
 ## Current project status
 
 This repository contains the first playable Godot prototype.
@@ -30,6 +37,8 @@ Implemented so far:
 - Main garden scene
 - Interactive 3x3 garden grid
 - First garden bed metadata layer for future multi-bed gardens
+- Unlockable Herb Bed with separate planted tile state
+- Herb Bed trait: herbs grow faster and produce a bonus basket
 - Seed picker with the first 8 test plants
 - Basic hidden plant relationship data
 - First discovery message when neighboring plants reveal a relationship
@@ -37,7 +46,7 @@ Implemented so far:
 - Relationship-influenced harvest feedback
 - Temporary garden diary listing discovered relationships
 - Harvest basket counter with better yields from healthy companion planting
-- Starter Bed goal: collect 8 baskets and discover 3 relationships
+- Starter Bed goal that unlocks the Herb Bed
 
 ## Working title
 
