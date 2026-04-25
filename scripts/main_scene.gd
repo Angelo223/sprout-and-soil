@@ -4,6 +4,7 @@ const AVAILABLE_SEEDS := ["carrot", "onion", "tomato", "basil", "potato", "bean"
 const TEXT_COLOR := Color(0.16, 0.24, 0.14)
 const BUTTON_COLOR := Color(0.26, 0.39, 0.29)
 const BUTTON_SELECTED_COLOR := Color(0.82, 0.73, 0.45)
+const BUTTON_ACCENT_COLOR := Color(0.72, 0.43, 0.29)
 const TARGET_HARVEST := 8
 const TARGET_DISCOVERIES := 3
 
@@ -12,23 +13,29 @@ var selected_seed_id := "carrot"
 var seed_buttons: Dictionary = {}
 var selected_seed_label: Label
 var harvest_label: Label
+var stats_label: Label
 var goal_label: Label
 var bed_label: Label
 var starter_bed_button: Button
 var herb_bed_button: Button
 var discovery_label: Label
-var diary_label: Label
+var codex_button: Button
 var water_button: Button
+var codex_panel: CodexPanel
 var diary_entries: Array[String] = []
 var total_harvest := 0
+var thriving_harvest_count := 0
+var lessons_count := 0
 var starter_goal_completed := false
 var herb_bed_unlocked := false
+var loading_save := false
 
 func _ready() -> void:
 	_create_background()
 	_create_garden_backdrop()
 	_create_title()
 	_create_harvest_counter()
+	_create_stats_label()
 	_create_goal_label()
 	_create_bed_label()
 	_create_bed_selector()
@@ -36,9 +43,12 @@ func _ready() -> void:
 	_create_seed_bar()
 	_create_care_button()
 	_create_status_panel()
-	_create_diary_panel()
+	_create_codex_button()
+	_create_codex_panel()
 	_update_seed_selection_ui()
 	_update_goal_label()
+	_update_stats_label()
+	_load_saved_game()
 
 func _create_background() -> void:
 	var background := ColorRect.new()
@@ -67,7 +77,7 @@ func _create_title() -> void:
 	var title := Label.new()
 	title.name = "Title"
 	title.text = "Sprout & Soil"
-	title.position = Vector2(0, 80)
+	title.position = Vector2(0, 60)
 	title.size = Vector2(1080, 80)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", TEXT_COLOR)
@@ -77,11 +87,11 @@ func _create_title() -> void:
 	var hint := Label.new()
 	hint.name = "Hint"
 	hint.text = "Choose a seed, then tap an empty bed."
-	hint.position = Vector2(0, 155)
-	hint.size = Vector2(1080, 60)
+	hint.position = Vector2(0, 130)
+	hint.size = Vector2(1080, 50)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_color_override("font_color", TEXT_COLOR)
-	hint.add_theme_font_size_override("font_size", 28)
+	hint.add_theme_font_size_override("font_size", 26)
 	add_child(hint)
 
 func _create_garden_grid() -> void:
@@ -92,23 +102,35 @@ func _create_garden_grid() -> void:
 	garden_grid.garden_message.connect(_on_garden_message)
 	garden_grid.harvest_completed.connect(_on_harvest_completed)
 	garden_grid.active_bed_changed.connect(_on_active_bed_changed)
+	garden_grid.three_sisters_completed.connect(_on_three_sisters_completed)
+	garden_grid.state_changed.connect(_on_grid_state_changed)
 	add_child(garden_grid)
 
 func _create_harvest_counter() -> void:
 	harvest_label = Label.new()
 	harvest_label.name = "HarvestLabel"
 	harvest_label.text = "Harvest Basket: 0"
-	harvest_label.position = Vector2(0, 220)
+	harvest_label.position = Vector2(0, 190)
 	harvest_label.size = Vector2(1080, 50)
 	harvest_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	harvest_label.add_theme_color_override("font_color", TEXT_COLOR)
-	harvest_label.add_theme_font_size_override("font_size", 28)
+	harvest_label.add_theme_font_size_override("font_size", 30)
 	add_child(harvest_label)
+
+func _create_stats_label() -> void:
+	stats_label = Label.new()
+	stats_label.name = "StatsLabel"
+	stats_label.position = Vector2(0, 240)
+	stats_label.size = Vector2(1080, 40)
+	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_label.add_theme_color_override("font_color", TEXT_COLOR)
+	stats_label.add_theme_font_size_override("font_size", 20)
+	add_child(stats_label)
 
 func _create_goal_label() -> void:
 	goal_label = Label.new()
 	goal_label.name = "GoalLabel"
-	goal_label.position = Vector2(0, 270)
+	goal_label.position = Vector2(0, 285)
 	goal_label.size = Vector2(1080, 45)
 	goal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	goal_label.add_theme_color_override("font_color", TEXT_COLOR)
@@ -119,7 +141,7 @@ func _create_bed_label() -> void:
 	bed_label = Label.new()
 	bed_label.name = "BedLabel"
 	bed_label.text = "Starter Bed"
-	bed_label.position = Vector2(0, 315)
+	bed_label.position = Vector2(0, 330)
 	bed_label.size = Vector2(1080, 50)
 	bed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	bed_label.add_theme_color_override("font_color", TEXT_COLOR)
@@ -130,8 +152,8 @@ func _create_bed_selector() -> void:
 	starter_bed_button = Button.new()
 	starter_bed_button.name = "StarterBedButton"
 	starter_bed_button.text = "Starter"
-	starter_bed_button.position = Vector2(330, 365)
-	starter_bed_button.size = Vector2(190, 60)
+	starter_bed_button.position = Vector2(330, 380)
+	starter_bed_button.size = Vector2(190, 50)
 	_apply_seed_button_theme(starter_bed_button)
 	starter_bed_button.pressed.connect(_on_starter_bed_pressed)
 	add_child(starter_bed_button)
@@ -139,8 +161,8 @@ func _create_bed_selector() -> void:
 	herb_bed_button = Button.new()
 	herb_bed_button.name = "HerbBedButton"
 	herb_bed_button.text = "Herb Locked"
-	herb_bed_button.position = Vector2(560, 365)
-	herb_bed_button.size = Vector2(190, 60)
+	herb_bed_button.position = Vector2(560, 380)
+	herb_bed_button.size = Vector2(190, 50)
 	_apply_seed_button_theme(herb_bed_button)
 	herb_bed_button.disabled = true
 	herb_bed_button.pressed.connect(_on_herb_bed_pressed)
@@ -149,19 +171,19 @@ func _create_bed_selector() -> void:
 func _create_seed_bar() -> void:
 	selected_seed_label = Label.new()
 	selected_seed_label.name = "SelectedSeedLabel"
-	selected_seed_label.position = Vector2(0, 1300)
+	selected_seed_label.position = Vector2(0, 1340)
 	selected_seed_label.size = Vector2(1080, 50)
 	selected_seed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	selected_seed_label.add_theme_color_override("font_color", TEXT_COLOR)
-	selected_seed_label.add_theme_font_size_override("font_size", 28)
+	selected_seed_label.add_theme_font_size_override("font_size", 26)
 	add_child(selected_seed_label)
 
 	var seed_bar := HBoxContainer.new()
 	seed_bar.name = "SeedBar"
-	seed_bar.position = Vector2(70, 1370)
-	seed_bar.size = Vector2(940, 120)
+	seed_bar.position = Vector2(70, 1395)
+	seed_bar.size = Vector2(940, 110)
 	seed_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	seed_bar.add_theme_constant_override("separation", 16)
+	seed_bar.add_theme_constant_override("separation", 14)
 	add_child(seed_bar)
 
 	for seed_id in AVAILABLE_SEEDS:
@@ -178,18 +200,28 @@ func _create_care_button() -> void:
 	water_button = Button.new()
 	water_button.name = "WaterGardenButton"
 	water_button.text = "Water Garden"
-	water_button.position = Vector2(390, 1500)
-	water_button.size = Vector2(300, 80)
+	water_button.position = Vector2(80, 1520)
+	water_button.size = Vector2(440, 80)
 	_apply_seed_button_theme(water_button)
 	water_button.pressed.connect(_on_water_button_pressed)
 	add_child(water_button)
+
+func _create_codex_button() -> void:
+	codex_button = Button.new()
+	codex_button.name = "CodexButton"
+	codex_button.text = "Open Codex (0)"
+	codex_button.position = Vector2(560, 1520)
+	codex_button.size = Vector2(440, 80)
+	_apply_seed_button_theme(codex_button, BUTTON_ACCENT_COLOR)
+	codex_button.pressed.connect(_on_codex_button_pressed)
+	add_child(codex_button)
 
 func _create_status_panel() -> void:
 	discovery_label = Label.new()
 	discovery_label.name = "StatusLabel"
 	discovery_label.text = "Plant neighbors, water the garden, then tap mature plants to harvest."
-	discovery_label.position = Vector2(110, 1600)
-	discovery_label.size = Vector2(860, 110)
+	discovery_label.position = Vector2(80, 1620)
+	discovery_label.size = Vector2(920, 250)
 	discovery_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	discovery_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	discovery_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -197,31 +229,23 @@ func _create_status_panel() -> void:
 	discovery_label.add_theme_font_size_override("font_size", 24)
 	add_child(discovery_label)
 
-func _create_diary_panel() -> void:
-	diary_label = Label.new()
-	diary_label.name = "DiaryLabel"
-	diary_label.text = "Garden Diary\nNo plant relationships discovered yet."
-	diary_label.position = Vector2(110, 1720)
-	diary_label.size = Vector2(860, 165)
-	diary_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	diary_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	diary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	diary_label.add_theme_color_override("font_color", TEXT_COLOR)
-	diary_label.add_theme_font_size_override("font_size", 21)
-	add_child(diary_label)
+func _create_codex_panel() -> void:
+	codex_panel = CodexPanel.new()
+	codex_panel.name = "CodexPanel"
+	add_child(codex_panel)
 
-func _apply_seed_button_theme(button: Button) -> void:
+func _apply_seed_button_theme(button: Button, base_color: Color = BUTTON_COLOR) -> void:
 	var normal_style := StyleBoxFlat.new()
-	normal_style.bg_color = BUTTON_COLOR
+	normal_style.bg_color = base_color
 	normal_style.corner_radius_top_left = 6
 	normal_style.corner_radius_top_right = 6
 	normal_style.corner_radius_bottom_left = 6
 	normal_style.corner_radius_bottom_right = 6
 	normal_style.border_width_bottom = 4
-	normal_style.border_color = Color(0.18, 0.28, 0.20)
+	normal_style.border_color = base_color.darkened(0.3)
 
 	var hover_style := normal_style.duplicate() as StyleBoxFlat
-	hover_style.bg_color = BUTTON_COLOR.lightened(0.08)
+	hover_style.bg_color = base_color.lightened(0.08)
 
 	var disabled_style := normal_style.duplicate() as StyleBoxFlat
 	disabled_style.bg_color = BUTTON_SELECTED_COLOR
@@ -252,6 +276,9 @@ func _update_seed_selection_ui() -> void:
 func _on_water_button_pressed() -> void:
 	garden_grid.water_all()
 
+func _on_codex_button_pressed() -> void:
+	codex_panel.open_with(garden_grid.get_discovery_list())
+
 func _on_starter_bed_pressed() -> void:
 	garden_grid.switch_bed("starter_bed")
 
@@ -268,8 +295,9 @@ func _on_relationship_discovered(discovery: Dictionary) -> void:
 	var type_label := PlantRelationshipData.get_type_label(discovery.get("type", PlantRelationshipData.TYPE_NEUTRAL))
 	var title: String = discovery.get("title", "New discovery")
 	var short_reason: String = discovery.get("short_reason", discovery.get("explanation", ""))
-	discovery_label.text = "New discovery: %s + %s\n%s: %s" % [first_name, second_name, title, short_reason]
+	discovery_label.text = "New discovery: %s + %s\n%s: %s\n(Open Codex for the full entry.)" % [first_name, second_name, title, short_reason]
 	_add_diary_entry("%s: %s + %s" % [type_label, first_name, second_name])
+	_update_codex_button()
 	_update_goal_label()
 	_check_starter_goal()
 
@@ -277,31 +305,43 @@ func _on_garden_message(message: String) -> void:
 	discovery_label.text = message
 
 func _on_harvest_completed(harvest_result: Dictionary) -> void:
-	total_harvest += harvest_result.get("yield_amount", 0)
+	var yield_amount: int = harvest_result.get("yield_amount", 0)
+	total_harvest += yield_amount
 	harvest_label.text = "Harvest Basket: %s" % total_harvest
+
+	var health: String = harvest_result.get("health", "healthy")
+	if health == "thriving":
+		thriving_harvest_count += 1
+	elif health == "stressed":
+		lessons_count += 1
+
+	_update_stats_label()
 	_update_goal_label()
 	_check_starter_goal()
+	_save_now()
 
 func _on_active_bed_changed(bed: GardenBed) -> void:
 	bed_label.text = bed.display_name
 	starter_bed_button.disabled = bed.bed_id == "starter_bed"
 	herb_bed_button.disabled = bed.bed_id == "herb_bed" or not herb_bed_unlocked
 
+func _on_three_sisters_completed() -> void:
+	discovery_label.text = "Three Sisters complete!\nCorn, Bean, and Squash now thrive together."
+
+func _on_grid_state_changed() -> void:
+	_save_now()
+
 func _add_diary_entry(entry: String) -> void:
 	if diary_entries.has(entry):
 		return
 
 	diary_entries.append(entry)
-	_update_diary_label()
 
-func _update_diary_label() -> void:
-	var diary_text := "Garden Diary (%s)" % diary_entries.size()
-	var start_index: int = max(diary_entries.size() - 4, 0)
+func _update_codex_button() -> void:
+	codex_button.text = "Open Codex (%s)" % diary_entries.size()
 
-	for index in range(start_index, diary_entries.size()):
-		diary_text += "\n- %s" % diary_entries[index]
-
-	diary_label.text = diary_text
+func _update_stats_label() -> void:
+	stats_label.text = "Buddy harvests: %s   |   Lessons learned: %s" % [thriving_harvest_count, lessons_count]
 
 func _update_goal_label() -> void:
 	goal_label.text = "Goal: %s/%s baskets  |  %s/%s discoveries" % [
@@ -326,3 +366,65 @@ func _check_starter_goal() -> void:
 	herb_bed_button.text = "Herb Bed"
 	herb_bed_button.disabled = false
 	discovery_label.text = "Starter Bed complete!\nHerb Bed unlocked."
+	_save_now()
+
+func _load_saved_game() -> void:
+	if not SaveManager.load_game():
+		return
+
+	loading_save = true
+	var save_data: Dictionary = SaveManager.data
+	total_harvest = int(save_data.get("total_harvest", 0))
+	starter_goal_completed = bool(save_data.get("starter_goal_completed", false))
+	herb_bed_unlocked = bool(save_data.get("herb_bed_unlocked", false))
+	thriving_harvest_count = int(save_data.get("thriving_harvest_count", 0))
+	lessons_count = int(save_data.get("lessons_count", 0))
+
+	diary_entries.clear()
+	for entry in save_data.get("diary_entries", []):
+		diary_entries.append(String(entry))
+
+	garden_grid.apply_save_state({
+		"active_bed_id": save_data.get("active_bed_id", "starter_bed"),
+		"bed_tile_states": save_data.get("bed_tile_states", {}),
+		"discovered_relationships": save_data.get("discovered_relationships", {})
+	})
+
+	harvest_label.text = "Harvest Basket: %s" % total_harvest
+
+	if herb_bed_unlocked:
+		herb_bed_button.text = "Herb Bed"
+		var current_bed: GardenBed = garden_grid.get_active_bed()
+		herb_bed_button.disabled = current_bed.bed_id == "herb_bed"
+
+	_update_codex_button()
+	_update_stats_label()
+	_update_goal_label()
+
+	if not diary_entries.is_empty() or total_harvest > 0:
+		discovery_label.text = "Welcome back. Your garden was restored."
+
+	loading_save = false
+
+func _save_now() -> void:
+	if loading_save:
+		return
+
+	var grid_state: Dictionary = garden_grid.get_save_state()
+	SaveManager.data = {
+		"version": SaveManager.SAVE_VERSION,
+		"total_harvest": total_harvest,
+		"thriving_harvest_count": thriving_harvest_count,
+		"lessons_count": lessons_count,
+		"starter_goal_completed": starter_goal_completed,
+		"herb_bed_unlocked": herb_bed_unlocked,
+		"diary_entries": diary_entries,
+		"discovered_relationships": grid_state.get("discovered_relationships", {}),
+		"bed_tile_states": grid_state.get("bed_tile_states", {}),
+		"active_bed_id": grid_state.get("active_bed_id", "starter_bed")
+	}
+	SaveManager.save_game()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_WM_GO_BACK_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED:
+		_save_now()

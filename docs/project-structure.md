@@ -73,14 +73,22 @@ sprout-and-soil/
 │  └─ project-structure.md
 └─ scripts/
    ├─ main_scene.gd
+   ├─ core/
+   │  └─ save_manager.gd
    ├─ data/
    │  ├─ plant_data.gd
    │  └─ plant_relationship_data.gd
-   └─ garden/
-      ├─ garden_bed.gd
-      ├─ garden_grid.gd
-      └─ garden_tile.gd
+   ├─ garden/
+   │  ├─ garden_bed.gd
+   │  ├─ garden_grid.gd
+   │  └─ garden_tile.gd
+   └─ ui/
+      └─ codex_panel.gd
 ```
+
+`scripts/core/save_manager.gd` is registered as the autoload `SaveManager`,
+so any scene can persist game state via `SaveManager.data` and
+`SaveManager.save_game()`.
 
 ## First prototype target
 

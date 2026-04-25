@@ -125,7 +125,7 @@ func _update_label() -> void:
 
 	var health_text := ""
 	if health != "healthy":
-		health_text = "\n%s" % health.capitalize()
+		health_text = "\n%s %s" % [_get_health_glyph(), health.capitalize()]
 
 	var mature_text := ""
 	if is_mature():
@@ -133,6 +133,17 @@ func _update_label() -> void:
 
 	text = "%s\nDay %s%s%s" % [PlantData.get_display_name(plant_id), growth_day, health_text, mature_text]
 	_refresh_tile_colors()
+
+func _get_health_glyph() -> String:
+	match health:
+		"thriving":
+			return "*"
+		"stressed":
+			return "!"
+		"curious":
+			return "?"
+		_:
+			return ""
 
 func _refresh_tile_colors() -> void:
 	if normal_style == null or hover_style == null:

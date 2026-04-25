@@ -5,6 +5,8 @@ signal relationship_discovered(discovery: Dictionary)
 signal garden_message(message: String)
 signal harvest_completed(harvest_result: Dictionary)
 signal active_bed_changed(bed: GardenBed)
+signal three_sisters_completed()
+signal state_changed()
 
 const GRID_SIZE := 3
 const TILE_SIZE := Vector2(260, 260)
@@ -17,11 +19,13 @@ var bed_tile_states: Dictionary = {}
 var selected_seed_id: String = "carrot"
 var tiles: Array[GardenTile] = []
 var discovered_relationships: Dictionary = {}
+var three_sisters_active := false
 
 func _ready() -> void:
 	_create_beds()
 	_create_tiles()
 	_load_active_bed_tiles()
+	_evaluate_all_relationships()
 	active_bed_changed.emit(get_active_bed())
 
 func set_selected_seed(seed_id: String) -> void:
@@ -37,7 +41,70 @@ func switch_bed(bed_id: String) -> bool:
 	_evaluate_all_relationships()
 	active_bed_changed.emit(get_active_bed())
 	garden_message.emit("Opened %s." % get_active_bed().display_name)
+	state_changed.emit()
 	return true
+
+func get_save_state() -> Dictionary:
+	_save_active_bed_tiles()
+	var serialized_beds: Dictionary = {}
+	for bed_id in bed_tile_states.keys():
+		var states: Array = bed_tile_states[bed_id]
+		var copies: Array = []
+		for state in states:
+			copies.append((state as Dictionary).duplicate())
+		serialized_beds[bed_id] = copies
+
+	var serialized_discoveries: Dictionary = {}
+	for key in discovered_relationships.keys():
+		serialized_discoveries[key] = (discovered_relationships[key] as Dictionary).duplicate()
+
+	return {
+		"active_bed_id": active_bed_id,
+		"bed_tile_states": serialized_beds,
+		"discovered_relationships": serialized_discoveries
+	}
+
+func apply_save_state(state: Dictionary) -> void:
+	if state.is_empty():
+		return
+
+	var saved_beds: Dictionary = state.get("bed_tile_states", {})
+	for bed_id in bed_tile_states.keys():
+		if not saved_beds.has(bed_id):
+			continue
+		var saved_states: Array = saved_beds[bed_id]
+		var typed_states: Array[Dictionary] = []
+		for entry in saved_states:
+			if typeof(entry) != TYPE_DICTIONARY:
+				continue
+			typed_states.append({
+				"plant_id": entry.get("plant_id", ""),
+				"growth_day": int(entry.get("growth_day", 0)),
+				"health": entry.get("health", "empty")
+			})
+		while typed_states.size() < GRID_SIZE * GRID_SIZE:
+			typed_states.append({"plant_id": "", "growth_day": 0, "health": "empty"})
+		bed_tile_states[bed_id] = typed_states
+
+	var saved_discoveries: Dictionary = state.get("discovered_relationships", {})
+	discovered_relationships.clear()
+	for key in saved_discoveries.keys():
+		if typeof(saved_discoveries[key]) == TYPE_DICTIONARY:
+			discovered_relationships[key] = (saved_discoveries[key] as Dictionary).duplicate()
+
+	var saved_active: String = state.get("active_bed_id", active_bed_id)
+	if beds.has(saved_active):
+		active_bed_id = saved_active
+
+	_load_active_bed_tiles()
+	_evaluate_all_relationships()
+	active_bed_changed.emit(get_active_bed())
+
+func get_discovery_list() -> Array[Dictionary]:
+	var list: Array[Dictionary] = []
+	for key in discovered_relationships.keys():
+		list.append((discovered_relationships[key] as Dictionary).duplicate())
+	return list
 
 func get_active_bed() -> GardenBed:
 	return beds[active_bed_id] as GardenBed
@@ -110,6 +177,7 @@ func _on_tile_selected(tile: GardenTile) -> void:
 		tile.plant(selected_seed_id)
 		var new_discoveries := _evaluate_all_relationships()
 		_save_active_bed_tiles()
+		state_changed.emit()
 		if new_discoveries == 0:
 			garden_message.emit("Planted %s." % PlantData.get_display_name(selected_seed_id))
 		return
@@ -125,28 +193,37 @@ func _on_tile_selected(tile: GardenTile) -> void:
 
 func water_all() -> void:
 	var watered_count := 0
+	var bonus_count := 0
 
 	for tile in tiles:
 		if tile.is_empty() or tile.is_mature():
 			continue
 
-		tile.grow_days(_get_growth_days_for_tile(tile))
+		var days := _get_growth_days_for_tile(tile)
+		tile.grow_days(days)
 		watered_count += 1
+		if days > 1:
+			bonus_count += 1
 
 	var new_discoveries := _evaluate_all_relationships()
 	_save_active_bed_tiles()
+	state_changed.emit()
 
 	if watered_count == 0:
 		garden_message.emit("Nothing needs water right now.")
 		return
 
 	if new_discoveries == 0:
-		garden_message.emit("Watered the garden. %s plant(s) grew." % watered_count)
+		var message := "Watered the garden. %s plant(s) grew." % watered_count
+		if bonus_count > 0:
+			message += "\n%s thriving plant(s) grew faster." % bonus_count
+		garden_message.emit(message)
 
 func _harvest_tile(tile: GardenTile) -> void:
 	var harvest_result := tile.harvest()
 	_evaluate_all_relationships()
 	_save_active_bed_tiles()
+	state_changed.emit()
 
 	var plant_name := PlantData.get_display_name(harvest_result.get("plant_id", ""))
 	var health: String = harvest_result.get("health", "healthy")
@@ -166,10 +243,15 @@ func _harvest_tile(tile: GardenTile) -> void:
 			garden_message.emit("%s gave %s basket.%s" % [plant_name, yield_amount, _get_harvest_bonus_text(plant_id)])
 
 func _get_growth_days_for_tile(tile: GardenTile) -> int:
-	if active_bed_id == "herb_bed" and PlantData.is_herb(tile.plant_id):
-		return 2
+	var days := 1
 
-	return 1
+	if active_bed_id == "herb_bed" and PlantData.is_herb(tile.plant_id):
+		days += 1
+
+	if tile.health == "thriving":
+		days += 1
+
+	return days
 
 func _get_harvest_bonus_text(plant_id: String) -> String:
 	if active_bed_id == "herb_bed" and PlantData.is_herb(plant_id):
@@ -193,6 +275,8 @@ func _get_harvest_yield(health: String, plant_id: String) -> int:
 
 func _evaluate_all_relationships() -> int:
 	var new_discoveries := 0
+	var was_three_sisters := three_sisters_active
+	three_sisters_active = false
 
 	for tile in tiles:
 		if not tile.is_empty():
@@ -203,6 +287,10 @@ func _evaluate_all_relationships() -> int:
 			new_discoveries += _evaluate_new_neighbors(tile)
 
 	_apply_three_sisters_bonus()
+
+	if three_sisters_active and not was_three_sisters:
+		three_sisters_completed.emit()
+
 	return new_discoveries
 
 func _evaluate_new_neighbors(tile: GardenTile) -> int:
@@ -241,6 +329,7 @@ func _apply_three_sisters_bonus() -> void:
 			for squash_tile in special_tiles["squash"]:
 				if _is_connected_special_trio(corn_tile, bean_tile, squash_tile):
 					_apply_trio_bonus([corn_tile, bean_tile, squash_tile])
+					three_sisters_active = true
 					return
 
 func _is_connected_special_trio(corn_tile: GardenTile, bean_tile: GardenTile, squash_tile: GardenTile) -> bool:

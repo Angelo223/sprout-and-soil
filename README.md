@@ -26,10 +26,10 @@ This repository contains the first playable Godot prototype.
 
 Next steps:
 
-1. Expand relationship outcomes beyond tile health labels and harvest messages.
-2. Add first prototype art and mobile UI polish.
-3. Add basic save/load for discovered relationships.
-4. Turn the temporary diary label into a full codex screen.
+1. Replace debug visuals with first prototype art (tiles, plants, seed packets).
+2. Add more plants and bed traits (Cool Bed, Sunny Bed).
+3. Add per-plant detail screens linked from the codex.
+4. Add gentle audio (planting, watering, harvest).
 
 Implemented so far:
 
@@ -44,9 +44,13 @@ Implemented so far:
 - First discovery message when neighboring plants reveal a relationship
 - Watering, growth progression, maturity, and simple harvesting
 - Relationship-influenced harvest feedback
-- Temporary garden diary listing discovered relationships
+- Thriving plants grow 1 extra day per watering
+- Three Sisters completion message when corn, bean, and squash all touch
 - Harvest basket counter with better yields from healthy companion planting
+- Buddy harvest and lesson stats under the harvest counter
 - Starter Bed goal that unlocks the Herb Bed
+- Full Garden Codex screen with relationship list and detail view
+- Persistent save/load for the whole garden, diary, and progression
 
 ## Working title
 

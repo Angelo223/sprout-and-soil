@@ -277,3 +277,28 @@ Add one or two new herb plants, such as Garlic and Lavender, then give Herb Bed 
 ### Next recommended step
 
 Add a proper relationship detail view later, so the diary can show the short entry first and open the full explanation on demand.
+
+## 2026-04-25 - Codex, save/load, and expanded outcomes
+
+### What changed
+
+- Added a persistent `SaveManager` autoload that writes to `user://sprout_save.json`.
+  - Persists total harvest, diary entries, discovered relationships, all bed tile states, active bed, herb bed unlock, and starter goal completion.
+  - Loads automatically on startup and shows a `Welcome back` message when a save is restored.
+  - Saves on every garden state change, after harvests, and on app close, back, and pause notifications.
+- Replaced the temporary diary label with a full `CodexPanel` (overlay):
+  - Paper-style panel with header, scrollable list, and per-entry color-coded type border.
+  - Each entry shows pair, type label, title, and short reason.
+  - Tapping an entry opens a detail view with the full explanation and a back button.
+  - New `Open Codex (n)` button on the main screen, with discovery counter.
+- Added a stats line under the harvest counter showing buddy harvests and lessons learned.
+- Expanded relationship gameplay outcomes:
+  - Thriving plants now grow 1 extra day per watering.
+  - Three Sisters completion now emits a dedicated signal and shows a celebration message when first formed.
+  - Tile labels show small glyphs (`*`, `!`, `?`) next to the health state.
+  - Watering message reports how many thriving plants grew faster.
+- `GardenGrid` exposes `get_save_state` / `apply_save_state` / `get_discovery_list` and emits a new `state_changed` signal so persistence is decoupled from UI.
+
+### Next recommended step
+
+Move toward first prototype art: replace debug colors with simple plant icons and seed packet buttons.
