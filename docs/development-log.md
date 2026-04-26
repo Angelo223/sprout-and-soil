@@ -277,3 +277,35 @@ Add one or two new herb plants, such as Garlic and Lavender, then give Herb Bed 
 ### Next recommended step
 
 Add a proper relationship detail view later, so the diary can show the short entry first and open the full explanation on demand.
+
+## 2026-04-26 - First visual asset integration
+
+### What changed
+
+- Added the first versioned SVG placeholder assets under `assets/`:
+  - `assets/tiles/ground/tile_grass_base.svg`
+  - `assets/tiles/beds/tile_bed_empty.svg`
+  - `assets/ui/seed_bar/ui_seed_slot.svg`
+  - `assets/ui/seed_bar/ui_seed_slot_selected.svg`
+  - `assets/plants/carrot/plant_carrot_stage_01.svg`
+  - `assets/plants/onion/plant_onion_stage_01.svg`
+  - `assets/plants/tomato/plant_tomato_stage_01.svg`
+  - `assets/plants/basil/plant_basil_stage_01.svg`
+- Extended `PlantData` with `stage_sprites` paths and `get_stage_sprite_path(...)`.
+- Reworked `GardenTile` from a text-only `Button` into a `Control` that renders:
+  - a bed texture
+  - a plant sprite
+  - a small status label
+  - a transparent click button layer
+- Updated `MainScene` to use:
+  - grass texture background
+  - grass texture garden backdrop
+  - SVG seed-slot textures for seed buttons
+
+### Design note
+
+These SVG assets are implementation placeholders, not final production art. They are intentionally committed as text-based assets so the visual integration can be tested immediately and later replaced by polished PNGs or refined SVGs without changing the gameplay logic again.
+
+### Next recommended step
+
+Pull and test in Godot. If the scene loads correctly, continue by replacing the temporary SVG art with final PNG exports and moving the Seed Bar into its own reusable UI component.
