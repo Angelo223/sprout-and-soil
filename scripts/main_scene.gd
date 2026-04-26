@@ -392,9 +392,9 @@ func _on_active_bed_changed(bed: GardenBed) -> void:
 	herb_bed_button.disabled = bed.bed_id == "herb_bed" or not herb_bed_unlocked
 
 func _update_goal_display() -> void:
-	var discoveries := status_panel.get_diary_entry_count() if status_panel != null else 0
-	var harvest_clamped := min(total_harvest, TARGET_HARVEST)
-	var discoveries_clamped := min(discoveries, TARGET_DISCOVERIES)
+	var discoveries: int = status_panel.get_diary_entry_count() if status_panel != null else 0
+	var harvest_clamped: int = min(total_harvest, TARGET_HARVEST)
+	var discoveries_clamped: int = min(discoveries, TARGET_DISCOVERIES)
 
 	goal_progress_label.text = "Goal:  %s/%s baskets    %s/%s discoveries" % [
 		harvest_clamped,
