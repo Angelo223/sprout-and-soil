@@ -7,14 +7,14 @@ const TEXT_COLOR := Color(0.16, 0.24, 0.14)
 const SEED_SLOT_TEXTURE_PATH := "res://assets/ui/seed_bar/ui_seed_slot.svg"
 const SEED_SLOT_SELECTED_TEXTURE_PATH := "res://assets/ui/seed_bar/ui_seed_slot_selected.svg"
 
-var available_seeds: Array[String] = []
+var available_seeds: Array = []
 var selected_seed_id := "carrot"
 var seed_buttons: Dictionary = {}
 var selected_seed_label: Label
 var seed_container: HBoxContainer
 
-func setup(seed_ids: Array[String], initial_seed_id: String) -> void:
-	available_seeds = seed_ids
+func setup(seed_ids: Array, initial_seed_id: String) -> void:
+	available_seeds = seed_ids.duplicate()
 	selected_seed_id = initial_seed_id
 	_build_ui()
 	_update_selection_ui()
@@ -49,7 +49,8 @@ func _build_ui() -> void:
 	seed_container.add_theme_constant_override("separation", 10)
 	add_child(seed_container)
 
-	for seed_id in available_seeds:
+	for seed_id_value in available_seeds:
+		var seed_id := str(seed_id_value)
 		var button := Button.new()
 		button.name = "%sSeedButton" % seed_id.capitalize()
 		button.text = PlantData.get_display_name(seed_id)
