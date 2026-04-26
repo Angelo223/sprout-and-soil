@@ -349,3 +349,20 @@ The status and diary area has its own presentation state. Moving it into a dedic
 ### Next recommended step
 
 Test that discovery messages, diary entries, goal progress, and Herb Bed unlocking still work after the refactor.
+
+## 2026-04-26 - Scrollable SeedBar
+
+### What changed
+
+- Wrapped the Seed Bar button row in a horizontal `ScrollContainer`.
+- Increased individual seed button width slightly for better readability.
+- Disabled vertical scrolling for the Seed Bar.
+- Kept `SeedBar` as the owner of seed selection state and visual selected-state updates.
+
+### Why
+
+Eight seeds were already crowded on a portrait mobile screen. A horizontal scroll area keeps the UI readable and allows the seed list to grow later without redesigning the entire bottom bar.
+
+### Next recommended step
+
+Test touch/mouse scrolling in Godot and on an Android device. If it feels good, the next UI pass should add clearer visual affordance that the Seed Bar can be swiped horizontally.
