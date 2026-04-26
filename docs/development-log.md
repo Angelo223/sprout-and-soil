@@ -327,3 +327,25 @@ The Seed Bar has its own UI state and visual rules. Keeping it inside `main_scen
 ### Next recommended step
 
 Test that seed selection still works. After that, extract the Garden Diary/status area into its own UI component as the next cleanup step.
+
+## 2026-04-26 - GardenStatusPanel UI component extraction
+
+### What changed
+
+- Added `scripts/ui/garden_status_panel.gd` as a reusable status and diary component.
+- Moved status message rendering and garden diary rendering out of `MainScene`.
+- `GardenStatusPanel` now exposes:
+  - `show_message(message)`
+  - `show_discovery(discovery)`
+  - `add_diary_entry(entry)`
+  - `get_diary_entry_count()`
+- `MainScene` now forwards garden messages and discoveries into `GardenStatusPanel` instead of directly editing labels.
+- Starter goal progress now reads the discovery count from `GardenStatusPanel`.
+
+### Why
+
+The status and diary area has its own presentation state. Moving it into a dedicated component keeps `MainScene` focused on connecting systems instead of owning every UI label.
+
+### Next recommended step
+
+Test that discovery messages, diary entries, goal progress, and Herb Bed unlocking still work after the refactor.
