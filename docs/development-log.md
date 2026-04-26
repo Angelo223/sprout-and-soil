@@ -309,3 +309,21 @@ These SVG assets are implementation placeholders, not final production art. They
 ### Next recommended step
 
 Pull and test in Godot. If the scene loads correctly, continue by replacing the temporary SVG art with final PNG exports and moving the Seed Bar into its own reusable UI component.
+
+## 2026-04-26 - SeedBar UI component extraction
+
+### What changed
+
+- Added `scripts/ui/seed_bar.gd` as a reusable UI component.
+- Moved seed button creation, styling, selected-state handling, and selected seed label into `SeedBar`.
+- `SeedBar` now emits `seed_selected(seed_id)` when the player selects a seed.
+- `MainScene` now creates `SeedBar`, connects its signal, and forwards the selected seed to `GardenGrid`.
+- Removed seed-button dictionaries and seed-selection UI update logic from `MainScene`.
+
+### Why
+
+The Seed Bar has its own UI state and visual rules. Keeping it inside `main_scene.gd` would make the main scene increasingly hard to maintain.
+
+### Next recommended step
+
+Test that seed selection still works. After that, extract the Garden Diary/status area into its own UI component as the next cleanup step.
