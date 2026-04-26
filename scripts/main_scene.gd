@@ -6,6 +6,9 @@ const BUTTON_COLOR := Color(0.26, 0.39, 0.29)
 const BUTTON_SELECTED_COLOR := Color(0.82, 0.73, 0.45)
 const TARGET_HARVEST := 8
 const TARGET_DISCOVERIES := 3
+const GRASS_TEXTURE_PATH := "res://assets/tiles/ground/tile_grass_base.svg"
+const SEED_SLOT_TEXTURE_PATH := "res://assets/ui/seed_bar/ui_seed_slot.svg"
+const SEED_SLOT_SELECTED_TEXTURE_PATH := "res://assets/ui/seed_bar/ui_seed_slot_selected.svg"
 
 var garden_grid: GardenGrid
 var selected_seed_id := "carrot"
@@ -41,24 +44,31 @@ func _ready() -> void:
 	_update_goal_label()
 
 func _create_background() -> void:
-	var background := ColorRect.new()
+	var background := TextureRect.new()
 	background.name = "Background"
-	background.color = Color(0.73, 0.88, 0.68)
+	background.texture = load(GRASS_TEXTURE_PATH)
+	background.position = Vector2.ZERO
 	background.size = Vector2(1080, 1920)
+	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background.stretch_mode = TextureRect.STRETCH_SCALE
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
 	move_child(background, 0)
 
 func _create_garden_backdrop() -> void:
-	var garden_backdrop := ColorRect.new()
+	var garden_backdrop := TextureRect.new()
 	garden_backdrop.name = "GardenBackdrop"
-	garden_backdrop.color = Color(0.64, 0.80, 0.57)
+	garden_backdrop.texture = load(GRASS_TEXTURE_PATH)
 	garden_backdrop.position = Vector2(28, 430)
 	garden_backdrop.size = Vector2(1024, 890)
+	garden_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	garden_backdrop.stretch_mode = TextureRect.STRETCH_SCALE
+	garden_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(garden_backdrop)
 
 	var controls_backdrop := ColorRect.new()
 	controls_backdrop.name = "ControlsBackdrop"
-	controls_backdrop.color = Color(0.70, 0.86, 0.64)
+	controls_backdrop.color = Color(0.94, 0.86, 0.68, 0.88)
 	controls_backdrop.position = Vector2(28, 1325)
 	controls_backdrop.size = Vector2(1024, 555)
 	add_child(controls_backdrop)
@@ -158,17 +168,17 @@ func _create_seed_bar() -> void:
 
 	var seed_bar := HBoxContainer.new()
 	seed_bar.name = "SeedBar"
-	seed_bar.position = Vector2(70, 1370)
-	seed_bar.size = Vector2(940, 120)
+	seed_bar.position = Vector2(44, 1370)
+	seed_bar.size = Vector2(992, 128)
 	seed_bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	seed_bar.add_theme_constant_override("separation", 16)
+	seed_bar.add_theme_constant_override("separation", 10)
 	add_child(seed_bar)
 
 	for seed_id in AVAILABLE_SEEDS:
 		var button := Button.new()
 		button.name = "%sSeedButton" % seed_id.capitalize()
 		button.text = PlantData.get_display_name(seed_id)
-		button.custom_minimum_size = Vector2(100, 100)
+		button.custom_minimum_size = Vector2(116, 118)
 		_apply_seed_button_theme(button)
 		button.pressed.connect(_on_seed_button_pressed.bind(seed_id))
 		seed_bar.add_child(button)
@@ -211,31 +221,36 @@ func _create_diary_panel() -> void:
 	add_child(diary_label)
 
 func _apply_seed_button_theme(button: Button) -> void:
-	var normal_style := StyleBoxFlat.new()
-	normal_style.bg_color = BUTTON_COLOR
-	normal_style.corner_radius_top_left = 6
-	normal_style.corner_radius_top_right = 6
-	normal_style.corner_radius_bottom_left = 6
-	normal_style.corner_radius_bottom_right = 6
-	normal_style.border_width_bottom = 4
-	normal_style.border_color = Color(0.18, 0.28, 0.20)
+	var normal_style := StyleBoxTexture.new()
+	normal_style.texture = load(SEED_SLOT_TEXTURE_PATH)
+	normal_style.content_margin_left = 14
+	normal_style.content_margin_top = 14
+	normal_style.content_margin_right = 14
+	normal_style.content_margin_bottom = 14
 
-	var hover_style := normal_style.duplicate() as StyleBoxFlat
-	hover_style.bg_color = BUTTON_COLOR.lightened(0.08)
+	var hover_style := StyleBoxTexture.new()
+	hover_style.texture = load(SEED_SLOT_SELECTED_TEXTURE_PATH)
+	hover_style.content_margin_left = 14
+	hover_style.content_margin_top = 14
+	hover_style.content_margin_right = 14
+	hover_style.content_margin_bottom = 14
 
-	var disabled_style := normal_style.duplicate() as StyleBoxFlat
-	disabled_style.bg_color = BUTTON_SELECTED_COLOR
-	disabled_style.border_color = Color(0.57, 0.47, 0.21)
+	var disabled_style := StyleBoxTexture.new()
+	disabled_style.texture = load(SEED_SLOT_SELECTED_TEXTURE_PATH)
+	disabled_style.content_margin_left = 14
+	disabled_style.content_margin_top = 14
+	disabled_style.content_margin_right = 14
+	disabled_style.content_margin_bottom = 14
 
 	button.add_theme_stylebox_override("normal", normal_style)
 	button.add_theme_stylebox_override("hover", hover_style)
 	button.add_theme_stylebox_override("pressed", hover_style)
 	button.add_theme_stylebox_override("disabled", disabled_style)
-	button.add_theme_color_override("font_color", Color(0.98, 1.0, 0.94))
-	button.add_theme_color_override("font_hover_color", Color(0.98, 1.0, 0.94))
-	button.add_theme_color_override("font_pressed_color", Color(0.98, 1.0, 0.94))
+	button.add_theme_color_override("font_color", TEXT_COLOR)
+	button.add_theme_color_override("font_hover_color", TEXT_COLOR)
+	button.add_theme_color_override("font_pressed_color", TEXT_COLOR)
 	button.add_theme_color_override("font_disabled_color", TEXT_COLOR)
-	button.add_theme_font_size_override("font_size", 21)
+	button.add_theme_font_size_override("font_size", 18)
 
 func _on_seed_button_pressed(seed_id: String) -> void:
 	selected_seed_id = seed_id
