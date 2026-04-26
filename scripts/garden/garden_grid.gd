@@ -10,6 +10,7 @@ const GRID_SIZE := 3
 const TILE_SIZE := Vector2(260, 260)
 const TILE_GAP := 24
 const VIEWPORT_WIDTH := 1080
+const DEFAULT_GRID_TOP := 450
 
 var active_bed_id := "starter_bed"
 var beds: Dictionary = {}
@@ -17,6 +18,7 @@ var bed_tile_states: Dictionary = {}
 var selected_seed_id: String = "carrot"
 var tiles: Array[GardenTile] = []
 var discovered_relationships: Dictionary = {}
+var grid_top_offset: int = DEFAULT_GRID_TOP
 
 func _ready() -> void:
 	_create_beds()
@@ -75,7 +77,7 @@ func _create_tiles() -> void:
 		GRID_SIZE * TILE_SIZE.x + (GRID_SIZE - 1) * TILE_GAP,
 		GRID_SIZE * TILE_SIZE.y + (GRID_SIZE - 1) * TILE_GAP
 	)
-	var start_position := Vector2((VIEWPORT_WIDTH - total_size.x) / 2.0, 450)
+	var start_position := Vector2((VIEWPORT_WIDTH - total_size.x) / 2.0, grid_top_offset)
 
 	for y in GRID_SIZE:
 		for x in GRID_SIZE:

@@ -3,13 +3,15 @@ extends Control
 
 signal seed_selected(seed_id: String)
 
-const TEXT_COLOR := Color(0.16, 0.24, 0.14)
+const TEXT_DEEP := Color("#263D25")
+const TEXT_SOFT := Color("#4A5C42")
 const SEED_SLOT_TEXTURE_PATH := "res://assets/ui/seed_bar/ui_seed_slot.svg"
 const SEED_SLOT_SELECTED_TEXTURE_PATH := "res://assets/ui/seed_bar/ui_seed_slot_selected.svg"
 
 var available_seeds: Array = []
 var selected_seed_id := "carrot"
 var seed_buttons: Dictionary = {}
+var heading_label: Label
 var selected_seed_label: Label
 var scroll_container: ScrollContainer
 var seed_container: HBoxContainer
@@ -28,24 +30,33 @@ func set_selected_seed(seed_id: String) -> void:
 	_update_selection_ui()
 
 func _build_ui() -> void:
-	if selected_seed_label != null:
+	if heading_label != null:
 		return
 
-	size = Vector2(1080, 205)
+	size = Vector2(968, 220)
+
+	heading_label = Label.new()
+	heading_label.name = "HeadingLabel"
+	heading_label.text = "Seeds"
+	heading_label.position = Vector2(0, 0)
+	heading_label.size = Vector2(300, 36)
+	heading_label.add_theme_color_override("font_color", TEXT_DEEP)
+	heading_label.add_theme_font_size_override("font_size", 24)
+	add_child(heading_label)
 
 	selected_seed_label = Label.new()
 	selected_seed_label.name = "SelectedSeedLabel"
-	selected_seed_label.position = Vector2(0, 0)
-	selected_seed_label.size = Vector2(1080, 50)
-	selected_seed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	selected_seed_label.add_theme_color_override("font_color", TEXT_COLOR)
-	selected_seed_label.add_theme_font_size_override("font_size", 28)
+	selected_seed_label.position = Vector2(300, 0)
+	selected_seed_label.size = Vector2(668, 36)
+	selected_seed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	selected_seed_label.add_theme_color_override("font_color", TEXT_SOFT)
+	selected_seed_label.add_theme_font_size_override("font_size", 22)
 	add_child(selected_seed_label)
 
 	scroll_container = ScrollContainer.new()
 	scroll_container.name = "SeedScrollContainer"
-	scroll_container.position = Vector2(44, 65)
-	scroll_container.size = Vector2(992, 140)
+	scroll_container.position = Vector2(0, 50)
+	scroll_container.size = Vector2(968, 160)
 	scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	scroll_container.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll_container.follow_focus = true
@@ -56,7 +67,7 @@ func _build_ui() -> void:
 	seed_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	seed_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	seed_container.alignment = BoxContainer.ALIGNMENT_BEGIN
-	seed_container.add_theme_constant_override("separation", 12)
+	seed_container.add_theme_constant_override("separation", 14)
 	scroll_container.add_child(seed_container)
 
 	for seed_id_value in available_seeds:
@@ -64,7 +75,7 @@ func _build_ui() -> void:
 		var button := Button.new()
 		button.name = "%sSeedButton" % seed_id.capitalize()
 		button.text = PlantData.get_display_name(seed_id)
-		button.custom_minimum_size = Vector2(132, 118)
+		button.custom_minimum_size = Vector2(140, 132)
 		button.focus_mode = Control.FOCUS_NONE
 		_apply_seed_button_theme(button)
 		button.pressed.connect(_on_seed_button_pressed.bind(seed_id))
@@ -97,11 +108,11 @@ func _apply_seed_button_theme(button: Button) -> void:
 	button.add_theme_stylebox_override("hover", hover_style)
 	button.add_theme_stylebox_override("pressed", hover_style)
 	button.add_theme_stylebox_override("disabled", disabled_style)
-	button.add_theme_color_override("font_color", TEXT_COLOR)
-	button.add_theme_color_override("font_hover_color", TEXT_COLOR)
-	button.add_theme_color_override("font_pressed_color", TEXT_COLOR)
-	button.add_theme_color_override("font_disabled_color", TEXT_COLOR)
-	button.add_theme_font_size_override("font_size", 18)
+	button.add_theme_color_override("font_color", TEXT_DEEP)
+	button.add_theme_color_override("font_hover_color", TEXT_DEEP)
+	button.add_theme_color_override("font_pressed_color", TEXT_DEEP)
+	button.add_theme_color_override("font_disabled_color", TEXT_DEEP)
+	button.add_theme_font_size_override("font_size", 20)
 
 func _on_seed_button_pressed(seed_id: String) -> void:
 	selected_seed_id = seed_id
@@ -112,7 +123,7 @@ func _update_selection_ui() -> void:
 	if selected_seed_label == null:
 		return
 
-	selected_seed_label.text = "Selected seed: %s" % PlantData.get_display_name(selected_seed_id)
+	selected_seed_label.text = "Selected: %s" % PlantData.get_display_name(selected_seed_id)
 
 	for seed_id in seed_buttons.keys():
 		var button: Button = seed_buttons[seed_id]
