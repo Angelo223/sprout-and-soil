@@ -11,6 +11,7 @@ var available_seeds: Array = []
 var selected_seed_id := "carrot"
 var seed_buttons: Dictionary = {}
 var selected_seed_label: Label
+var scroll_container: ScrollContainer
 var seed_container: HBoxContainer
 
 func setup(seed_ids: Array, initial_seed_id: String) -> void:
@@ -30,7 +31,7 @@ func _build_ui() -> void:
 	if selected_seed_label != null:
 		return
 
-	size = Vector2(1080, 200)
+	size = Vector2(1080, 205)
 
 	selected_seed_label = Label.new()
 	selected_seed_label.name = "SelectedSeedLabel"
@@ -41,20 +42,30 @@ func _build_ui() -> void:
 	selected_seed_label.add_theme_font_size_override("font_size", 28)
 	add_child(selected_seed_label)
 
+	scroll_container = ScrollContainer.new()
+	scroll_container.name = "SeedScrollContainer"
+	scroll_container.position = Vector2(44, 65)
+	scroll_container.size = Vector2(992, 140)
+	scroll_container.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll_container.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll_container.follow_focus = true
+	add_child(scroll_container)
+
 	seed_container = HBoxContainer.new()
 	seed_container.name = "SeedContainer"
-	seed_container.position = Vector2(44, 70)
-	seed_container.size = Vector2(992, 128)
-	seed_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	seed_container.add_theme_constant_override("separation", 10)
-	add_child(seed_container)
+	seed_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	seed_container.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	seed_container.alignment = BoxContainer.ALIGNMENT_BEGIN
+	seed_container.add_theme_constant_override("separation", 12)
+	scroll_container.add_child(seed_container)
 
 	for seed_id_value in available_seeds:
 		var seed_id := str(seed_id_value)
 		var button := Button.new()
 		button.name = "%sSeedButton" % seed_id.capitalize()
 		button.text = PlantData.get_display_name(seed_id)
-		button.custom_minimum_size = Vector2(116, 118)
+		button.custom_minimum_size = Vector2(132, 118)
+		button.focus_mode = Control.FOCUS_NONE
 		_apply_seed_button_theme(button)
 		button.pressed.connect(_on_seed_button_pressed.bind(seed_id))
 		seed_container.add_child(button)
