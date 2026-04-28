@@ -3,7 +3,7 @@ extends Control
 
 signal tile_selected(tile: GardenTile)
 
-const TILE_SIZE := Vector2(260, 260)
+const TILE_SIZE := Vector2(210, 210)
 const BED_TEXTURE_PATH := "res://assets/tiles/beds/tile_bed_empty.svg"
 
 var tile_index: int = -1
@@ -112,8 +112,8 @@ func _build_visuals() -> void:
 
 	plant_texture = TextureRect.new()
 	plant_texture.name = "PlantTexture"
-	plant_texture.position = Vector2(32, 22)
-	plant_texture.size = Vector2(196, 196)
+	plant_texture.position = Vector2(28, 18)
+	plant_texture.size = Vector2(154, 154)
 	plant_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	plant_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	plant_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -121,15 +121,15 @@ func _build_visuals() -> void:
 
 	status_label = Label.new()
 	status_label.name = "StatusLabel"
-	status_label.position = Vector2(20, 202)
-	status_label.size = Vector2(220, 42)
+	status_label.position = Vector2(14, 162)
+	status_label.size = Vector2(182, 34)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	status_label.add_theme_color_override("font_color", Color(0.98, 0.94, 0.82))
 	status_label.add_theme_color_override("font_shadow_color", Color(0.20, 0.12, 0.08, 0.75))
 	status_label.add_theme_constant_override("shadow_offset_x", 1)
 	status_label.add_theme_constant_override("shadow_offset_y", 2)
-	status_label.add_theme_font_size_override("font_size", 18)
+	status_label.add_theme_font_size_override("font_size", 16)
 	add_child(status_label)
 
 	click_button = Button.new()

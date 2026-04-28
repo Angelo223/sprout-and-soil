@@ -7,8 +7,8 @@ signal harvest_completed(harvest_result: Dictionary)
 signal active_bed_changed(bed: GardenBed)
 
 const GRID_SIZE := 3
-const TILE_SIZE := Vector2(260, 260)
-const TILE_GAP := 24
+const TILE_SIZE := Vector2(210, 210)
+const TILE_GAP := 52
 const VIEWPORT_WIDTH := 1080
 const DEFAULT_GRID_TOP := 450
 

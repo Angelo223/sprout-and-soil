@@ -387,3 +387,100 @@ The previous layout grew label by label at the top of the screen until five cent
 ### Next recommended step
 
 Test the layout in Godot on the 540x960 window override and on a real Android viewport. Then start replacing the placeholder SVGs with the journal-style assets described in the art direction doc.
+
+## 2026-04-28 - Remaining prototype plant textures
+
+### What changed
+
+- Added Stage-01 SVG placeholder assets for the remaining four MVP test plants:
+  - `assets/plants/potato/plant_potato_stage_01.svg`
+  - `assets/plants/bean/plant_bean_stage_01.svg`
+  - `assets/plants/corn/plant_corn_stage_01.svg`
+  - `assets/plants/squash/plant_squash_stage_01.svg`
+- Updated `PlantData` so Potato, Bean, Corn, and Squash now resolve sprite paths instead of rendering as empty planted beds.
+
+### Design note
+
+These assets keep the same 256x256 SVG placeholder approach as the first four plants. They are distinct enough for prototype readability while still being lightweight and replaceable later.
+
+## 2026-04-28 - Visual design refresh
+
+### What changed
+
+- Replaced the repeated full-screen grass background with a calmer layered garden backdrop drawn in `MainScene`.
+- Updated the garden frame to read more like a focused play surface instead of a flat green box.
+- Restyled seed buttons with cleaner modern cards and a brighter selected state.
+- Refined the water button, bed tabs, basket/diary pills, and diary modal styling.
+- Reworked the grass and empty-bed SVG placeholders so the board feels softer and less debug-like.
+
+### Design note
+
+The refresh keeps the cozy garden-journal direction, but reduces the old flat green repetition and heavy placeholder edges.
+
+## 2026-04-28 - Generated art asset integration
+
+### What changed
+
+- Added generated PNG art assets under `assets/art/generated/` and `assets/ui/generated/`.
+- Cropped transparent padding from the generated board, diary, seed-card, selected seed-card, and water-button images for cleaner Godot scaling.
+- Replaced the procedural background with `garden_background.png`.
+- Replaced the drawn garden frame with `garden_play_board_cropped.png`.
+- Updated Seed Bar buttons to use the generated seed-card textures.
+- Updated the primary water button to use the generated moss-green button texture.
+- Added the generated diary paper texture behind the diary modal content.
+
+### Design note
+
+The generated images are now used as visual foundations, while all text and interaction remains native Godot UI for readability and localization.
+
+## 2026-04-28 - Panel separation pass
+
+### What changed
+
+- Added a dedicated header panel behind the diary button, basket counter, and bed tabs.
+- Strengthened the controls area with an outer paper panel and a muted inner panel so seed cards and the water button no longer float directly on the background illustration.
+- Adjusted the diary modal to use the generated notepad texture without an extra rectangular backing panel.
+- Moved diary content, list scroll area, close button, back button, and relationship detail content inward so they sit inside the illustrated paper safe area.
+
+### Design note
+
+The generated background remains decorative, while interactive UI now lives on readable panels with clearer ownership and less visual overlap.
+
+## 2026-04-28 - Mobile seed selector cleanup
+
+### What changed
+
+- Replaced the tall seed-card selector with compact rounded seed chips.
+- Reduced the height of the bottom controls area so it feels more like a mobile toolbar.
+- Added more vertical breathing room to the top header and bed tabs.
+- Moved the diary close button upward so it sits inside the paper safe area instead of near the illustrated edge.
+
+### Design note
+
+Seed selection should be fast and thumb-friendly. The detailed seed-packet art can return later in a dedicated seed detail view, but the main planting screen works better with compact controls.
+
+## 2026-04-28 - Bed and seed interaction cleanup
+
+### What changed
+
+- Reduced garden tile size from 260x260 to 210x210 and increased spacing so the tiles sit inside the illustrated board instead of overpowering it.
+- Moved the 3x3 grid lower within the generated board art to better match the visual safe area.
+- Changed the bed selector so the active Starter Bed remains an active button style instead of becoming disabled.
+- Renamed the locked Herb Bed tab to `Herb Locked` and gave it a muted locked style.
+- Replaced the always-visible seed chip strip with a compact current-seed control that opens the seed picker.
+- Added a small seed picker panel that opens above the controls only when the player wants to switch seeds.
+
+### Design note
+
+The main garden screen should keep the player focused on the bed. Secondary choices like seed selection should stay available, but not constantly occupy the visual foreground.
+
+## 2026-04-28 - Seed selector redundancy cleanup
+
+### What changed
+
+- Removed the separate `Change Seed` button.
+- Made the current seed control the single tap target for opening the seed picker.
+
+### Design note
+
+One control should do one job. If the current seed label opens the picker, a second change button only adds noise.

@@ -4,9 +4,10 @@ extends Control
 const TEXT_DEEP := Color("#263D25")
 const TEXT_SOFT := Color("#4A5C42")
 const ACCENT_SOIL := Color("#7B5738")
-const PAPER_CREAM := Color("#FBF4DD")
-const PAPER_WARM := Color("#FFF4D5")
+const PAPER_CREAM := Color("#FFF8E6")
+const PAPER_WARM := Color("#FFF1C6")
 const SHADOW_INK := Color(0.10, 0.16, 0.08, 0.35)
+const DIARY_PANEL_TEXTURE_PATH := "res://assets/ui/generated/diary_panel_cropped.png"
 
 const COLOR_TYPE_GOOD := Color("#7B9B5A")
 const COLOR_TYPE_RISKY := Color("#B86F4B")
@@ -17,8 +18,8 @@ const STATUS_FADE_DELAY := 4.5
 const STATUS_FADE_DURATION := 0.6
 
 const DIARY_CARD_SIZE := Vector2(920, 1100)
-const PLANT_TILE_BG := Color("#FFF4D5")
-const PLANT_TILE_BORDER := Color("#D8BF83")
+const PLANT_TILE_BG := Color("#FFF6DA")
+const PLANT_TILE_BORDER := Color("#D7BF82")
 
 var status_label: Label
 
@@ -164,7 +165,7 @@ func _build_diary_overlay() -> void:
 
 	var dim := ColorRect.new()
 	dim.name = "DiaryDim"
-	dim.color = Color(0.10, 0.14, 0.08, 0.55)
+	dim.color = Color(0.10, 0.14, 0.08, 0.62)
 	dim.position = Vector2.ZERO
 	dim.size = Vector2(1080, 1920)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -179,26 +180,36 @@ func _build_diary_overlay() -> void:
 	dim_button.pressed.connect(close_diary)
 	diary_overlay.add_child(dim_button)
 
-	diary_card = _make_card(PAPER_CREAM, ACCENT_SOIL, 32, 4)
+	diary_card = _make_card(Color(1, 1, 1, 0), Color(1, 1, 1, 0), 28, 0)
 	diary_card.name = "DiaryCard"
-	diary_card.position = Vector2(80, 380)
+	diary_card.position = Vector2(80, 330)
 	diary_card.size = DIARY_CARD_SIZE
 	diary_overlay.add_child(diary_card)
+
+	var diary_card_texture := TextureRect.new()
+	diary_card_texture.name = "DiaryCardTexture"
+	diary_card_texture.texture = load(DIARY_PANEL_TEXTURE_PATH)
+	diary_card_texture.position = Vector2.ZERO
+	diary_card_texture.size = DIARY_CARD_SIZE
+	diary_card_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	diary_card_texture.stretch_mode = TextureRect.STRETCH_SCALE
+	diary_card_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	diary_card.add_child(diary_card_texture)
 
 	diary_heading = Label.new()
 	diary_heading.name = "DiaryHeading"
 	diary_heading.text = "Garden Diary"
-	diary_heading.position = Vector2(40, 32)
-	diary_heading.size = Vector2(840, 48)
+	diary_heading.position = Vector2(70, 78)
+	diary_heading.size = Vector2(780, 48)
 	diary_heading.add_theme_color_override("font_color", TEXT_DEEP)
 	diary_heading.add_theme_font_size_override("font_size", 32)
 	diary_card.add_child(diary_heading)
 
 	var separator := ColorRect.new()
 	separator.name = "DiarySeparator"
-	separator.color = Color(ACCENT_SOIL.r, ACCENT_SOIL.g, ACCENT_SOIL.b, 0.4)
-	separator.position = Vector2(40, 90)
-	separator.size = Vector2(840, 2)
+	separator.color = Color(ACCENT_SOIL.r, ACCENT_SOIL.g, ACCENT_SOIL.b, 0.25)
+	separator.position = Vector2(70, 136)
+	separator.size = Vector2(780, 2)
 	separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	diary_card.add_child(separator)
 
@@ -209,14 +220,14 @@ func _build_diary_overlay() -> void:
 func _build_list_view() -> void:
 	list_view = Control.new()
 	list_view.name = "DiaryListView"
-	list_view.position = Vector2(0, 100)
-	list_view.size = Vector2(DIARY_CARD_SIZE.x, DIARY_CARD_SIZE.y - 100)
+	list_view.position = Vector2(0, 150)
+	list_view.size = Vector2(DIARY_CARD_SIZE.x, DIARY_CARD_SIZE.y - 150)
 	diary_card.add_child(list_view)
 
 	list_scroll = ScrollContainer.new()
 	list_scroll.name = "DiaryListScroll"
-	list_scroll.position = Vector2(28, 12)
-	list_scroll.size = Vector2(DIARY_CARD_SIZE.x - 56, list_view.size.y - 110)
+	list_scroll.position = Vector2(74, 12)
+	list_scroll.size = Vector2(DIARY_CARD_SIZE.x - 148, list_view.size.y - 158)
 	list_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	list_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	list_scroll.scroll_deadzone = 12
@@ -231,8 +242,8 @@ func _build_list_view() -> void:
 	list_empty_label = Label.new()
 	list_empty_label.name = "DiaryEmptyLabel"
 	list_empty_label.text = "Plant neighbors and discover how they get along.\nYour first findings will appear here."
-	list_empty_label.position = Vector2(40, 80)
-	list_empty_label.size = Vector2(DIARY_CARD_SIZE.x - 80, 200)
+	list_empty_label.position = Vector2(110, 110)
+	list_empty_label.size = Vector2(DIARY_CARD_SIZE.x - 220, 200)
 	list_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	list_empty_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	list_empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -243,10 +254,10 @@ func _build_list_view() -> void:
 	list_close_button = Button.new()
 	list_close_button.name = "DiaryCloseButton"
 	list_close_button.text = "Close"
-	list_close_button.position = Vector2((DIARY_CARD_SIZE.x - 200) / 2.0, list_view.size.y - 90)
+	list_close_button.position = Vector2((DIARY_CARD_SIZE.x - 200) / 2.0, list_view.size.y - 188)
 	list_close_button.size = Vector2(200, 70)
 	list_close_button.focus_mode = Control.FOCUS_NONE
-	_apply_pill_button_theme(list_close_button, Color("#627A4E"), Color("#3F5532"), PAPER_CREAM)
+	_apply_pill_button_theme(list_close_button, Color("#496B43"), Color("#2F4C32"), PAPER_CREAM)
 	list_close_button.pressed.connect(close_diary)
 	list_view.add_child(list_close_button)
 
@@ -261,16 +272,16 @@ func _build_detail_view() -> void:
 	detail_back_button = Button.new()
 	detail_back_button.name = "DiaryBackButton"
 	detail_back_button.text = "< Back"
-	detail_back_button.position = Vector2(28, 28)
+	detail_back_button.position = Vector2(70, 76)
 	detail_back_button.size = Vector2(150, 60)
 	detail_back_button.focus_mode = Control.FOCUS_NONE
-	_apply_pill_button_theme(detail_back_button, PAPER_WARM, ACCENT_SOIL, TEXT_DEEP)
+	_apply_pill_button_theme(detail_back_button, Color("#FFF8DF"), Color("#8A6647"), TEXT_DEEP)
 	detail_back_button.pressed.connect(_show_list_view)
 	detail_view.add_child(detail_back_button)
 
 	var plant_tile_size := Vector2(340, 340)
-	var plant_a_origin := Vector2(80, 130)
-	var plant_b_origin := Vector2(500, 130)
+	var plant_a_origin := Vector2(80, 190)
+	var plant_b_origin := Vector2(500, 190)
 
 	detail_plant_a_panel = _make_plant_tile()
 	detail_plant_a_panel.position = plant_a_origin
@@ -332,8 +343,8 @@ func _build_detail_view() -> void:
 	detail_plant_b_panel.add_child(detail_plant_b_name)
 
 	detail_type_panel = Panel.new()
-	detail_type_panel.position = Vector2((DIARY_CARD_SIZE.x - 240) / 2.0, 510)
-	detail_type_panel.size = Vector2(240, 56)
+	detail_type_panel.position = Vector2((DIARY_CARD_SIZE.x - 250) / 2.0, 570)
+	detail_type_panel.size = Vector2(250, 56)
 	detail_view.add_child(detail_type_panel)
 
 	detail_type_label = Label.new()
@@ -349,7 +360,7 @@ func _build_detail_view() -> void:
 
 	detail_title_label = Label.new()
 	detail_title_label.name = "DetailTitle"
-	detail_title_label.position = Vector2(60, 600)
+	detail_title_label.position = Vector2(60, 660)
 	detail_title_label.size = Vector2(DIARY_CARD_SIZE.x - 120, 60)
 	detail_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	detail_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -359,8 +370,8 @@ func _build_detail_view() -> void:
 
 	detail_explanation_label = Label.new()
 	detail_explanation_label.name = "DetailExplanation"
-	detail_explanation_label.position = Vector2(60, 670)
-	detail_explanation_label.size = Vector2(DIARY_CARD_SIZE.x - 120, DIARY_CARD_SIZE.y - 700)
+	detail_explanation_label.position = Vector2(110, 730)
+	detail_explanation_label.size = Vector2(DIARY_CARD_SIZE.x - 220, DIARY_CARD_SIZE.y - 790)
 	detail_explanation_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	detail_explanation_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	detail_explanation_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -372,6 +383,7 @@ func _show_list_view() -> void:
 	if list_view == null:
 		return
 
+	diary_heading.visible = true
 	list_view.visible = true
 	if detail_view != null:
 		detail_view.visible = false
@@ -381,6 +393,7 @@ func _show_detail_view(entry: Dictionary) -> void:
 	if detail_view == null:
 		return
 
+	diary_heading.visible = false
 	list_view.visible = false
 	detail_view.visible = true
 
@@ -425,16 +438,19 @@ func _make_entry_button(entry: Dictionary) -> Button:
 	button.pressed.connect(_show_detail_view.bind(entry))
 
 	var card_style := StyleBoxFlat.new()
-	card_style.bg_color = PAPER_WARM
-	card_style.border_color = Color(ACCENT_SOIL.r, ACCENT_SOIL.g, ACCENT_SOIL.b, 0.5)
+	card_style.bg_color = Color("#FFF8DF")
+	card_style.border_color = Color(ACCENT_SOIL.r, ACCENT_SOIL.g, ACCENT_SOIL.b, 0.22)
 	card_style.set_border_width_all(2)
-	card_style.set_corner_radius_all(20)
+	card_style.set_corner_radius_all(18)
+	card_style.shadow_color = Color(0.12, 0.10, 0.06, 0.10)
+	card_style.shadow_size = 3
+	card_style.shadow_offset = Vector2(0, 2)
 
 	var hover_style := card_style.duplicate() as StyleBoxFlat
-	hover_style.bg_color = Color("#FFE9B5")
+	hover_style.bg_color = Color("#FFF1C6")
 
 	var pressed_style := card_style.duplicate() as StyleBoxFlat
-	pressed_style.bg_color = Color("#F4DDA4")
+	pressed_style.bg_color = Color("#EFD99D")
 
 	button.add_theme_stylebox_override("normal", card_style)
 	button.add_theme_stylebox_override("hover", hover_style)
@@ -511,7 +527,7 @@ func _make_plant_tile() -> Panel:
 	style.bg_color = PLANT_TILE_BG
 	style.border_color = PLANT_TILE_BORDER
 	style.set_border_width_all(3)
-	style.set_corner_radius_all(28)
+	style.set_corner_radius_all(20)
 	style.shadow_color = SHADOW_INK
 	style.shadow_size = 6
 	style.shadow_offset = Vector2(0, 4)
@@ -535,7 +551,7 @@ func _apply_type_panel_color(panel: Panel, type_id: String) -> void:
 	style.bg_color = color
 	style.border_color = Color(color.r * 0.7, color.g * 0.7, color.b * 0.7)
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(20)
+	style.set_corner_radius_all(18)
 	panel.add_theme_stylebox_override("panel", style)
 
 func _color_for_type(type_id: String) -> Color:
@@ -557,8 +573,8 @@ func _make_card(bg: Color, border: Color, radius: int, border_width: int) -> Pan
 	style.set_border_width_all(border_width)
 	style.set_corner_radius_all(radius)
 	style.shadow_color = SHADOW_INK
-	style.shadow_size = 8
-	style.shadow_offset = Vector2(0, 5)
+	style.shadow_size = 18
+	style.shadow_offset = Vector2(0, 8)
 	panel.add_theme_stylebox_override("panel", style)
 	return panel
 
@@ -567,7 +583,7 @@ func _apply_pill_button_theme(button: Button, bg: Color, border: Color, font_col
 	normal.bg_color = bg
 	normal.border_color = border
 	normal.set_border_width_all(3)
-	normal.set_corner_radius_all(20)
+	normal.set_corner_radius_all(18)
 
 	var hover := normal.duplicate() as StyleBoxFlat
 	hover.bg_color = Color(bg.r * 0.95, bg.g * 0.95, bg.b * 0.95)

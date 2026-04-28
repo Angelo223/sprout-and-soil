@@ -43,28 +43,36 @@ const PLANTS := {
 		"plant_type": "root",
 		"growth_days": 4,
 		"description": "A sturdy tuber for testing risky plant relationships.",
-		"stage_sprites": []
+		"stage_sprites": [
+			"res://assets/plants/potato/plant_potato_stage_01.svg"
+		]
 	},
 	"bean": {
 		"display_name": "Bean",
 		"plant_type": "legume",
 		"growth_days": 3,
 		"description": "A climbing plant that can support future special combinations.",
-		"stage_sprites": []
+		"stage_sprites": [
+			"res://assets/plants/bean/plant_bean_stage_01.svg"
+		]
 	},
 	"corn": {
 		"display_name": "Corn",
 		"plant_type": "grain",
 		"growth_days": 5,
 		"description": "A tall crop that can become part of a companion planting trio.",
-		"stage_sprites": []
+		"stage_sprites": [
+			"res://assets/plants/corn/plant_corn_stage_01.svg"
+		]
 	},
 	"squash": {
 		"display_name": "Squash",
 		"plant_type": "fruit",
 		"growth_days": 4,
 		"description": "A broad-leaf plant for testing special garden layouts.",
-		"stage_sprites": []
+		"stage_sprites": [
+			"res://assets/plants/squash/plant_squash_stage_01.svg"
+		]
 	}
 }
 
