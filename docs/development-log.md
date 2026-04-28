@@ -366,3 +366,24 @@ Eight seeds were already crowded on a portrait mobile screen. A horizontal scrol
 ### Next recommended step
 
 Test touch/mouse scrolling in Godot and on an Android device. If it feels good, the next UI pass should add clearer visual affordance that the Seed Bar can be swiped horizontally.
+
+## 2026-04-26 - UI cleanup pass
+
+### What changed
+
+- Replaced the stack of five top-level labels with a single cream header panel that holds the title, a butter-yellow harvest basket badge, the hint text, the goal line, and two slim progress bars for baskets and discoveries.
+- Replaced the duplicated grass backdrop behind the grid with a soil-colored frame panel that wraps the grass texture, so the play area has a clear journal-like edge.
+- Replaced the flat `ColorRect` controls backdrop with a rounded cream `StyleBoxFlat` panel that visually anchors the seeds, the water button, and the diary together.
+- Reworked the bed selector into proper tabs with an active-state highlight using `StyleBoxFlat` instead of seed-slot textures, and moved the active bed name onto the tab row.
+- Restyled `Water Garden` as a moss-green primary action button with shadow and rounded corners, and centered it under the seed row.
+- Repositioned and resized `GardenStatusPanel` to fit inside the new bottom panel as two stacked cards (status card + diary card with a heading and separator), and switched the diary entries to bullet lines.
+- Added a `grid_top_offset` field to `GardenGrid` so the main scene can vertically center the 3x3 grid inside its new frame instead of hard-coding the y position.
+- Centralized the new color palette (cream, sage, moss, soil, clay, butter, deep text green) inside `main_scene.gd`, drawn from `progression-and-art-direction.md`.
+
+### Why
+
+The previous layout grew label by label at the top of the screen until five centered labels and two buttons were stacked between y=80 and y=425 with no visual grouping. The grid backdrop was a second copy of the grass texture, which read as flat noise rather than a defined play area. The controls area was a single translucent rectangle that did not separate the seed bar, the water button, and the diary. The bed selector reused seed-slot art that visually competed with the actual seeds.
+
+### Next recommended step
+
+Test the layout in Godot on the 540x960 window override and on a real Android viewport. Then start replacing the placeholder SVGs with the journal-style assets described in the art direction doc.
