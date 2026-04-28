@@ -5,17 +5,47 @@ const TEXT_DEEP := Color("#263D25")
 const TEXT_SOFT := Color("#4A5C42")
 const ACCENT_SOIL := Color("#7B5738")
 const PAPER_CREAM := Color("#FBF4DD")
+const PAPER_WARM := Color("#FFF4D5")
 const SHADOW_INK := Color(0.10, 0.16, 0.08, 0.35)
+
+const COLOR_TYPE_GOOD := Color("#7B9B5A")
+const COLOR_TYPE_RISKY := Color("#B86F4B")
+const COLOR_TYPE_SPECIAL := Color("#C9A445")
+const COLOR_TYPE_NEUTRAL := Color("#8C9BC8")
 
 const STATUS_FADE_DELAY := 4.5
 const STATUS_FADE_DURATION := 0.6
 
+const DIARY_CARD_SIZE := Vector2(920, 1100)
+const PLANT_TILE_BG := Color("#FFF4D5")
+const PLANT_TILE_BORDER := Color("#D8BF83")
+
 var status_label: Label
+
+var diary_entries: Array[Dictionary] = []
 var diary_overlay: Control
 var diary_card: Panel
-var diary_label: Label
 var diary_heading: Label
-var diary_entries: Array[String] = []
+
+var list_view: Control
+var list_scroll: ScrollContainer
+var list_box: VBoxContainer
+var list_empty_label: Label
+var list_close_button: Button
+
+var detail_view: Control
+var detail_back_button: Button
+var detail_plant_a_panel: Panel
+var detail_plant_a_image: TextureRect
+var detail_plant_a_name: Label
+var detail_plant_b_panel: Panel
+var detail_plant_b_image: TextureRect
+var detail_plant_b_name: Label
+var detail_type_panel: Panel
+var detail_type_label: Label
+var detail_title_label: Label
+var detail_explanation_label: Label
+
 var status_tween: Tween
 var status_timer: float = 0.0
 var status_visible: bool = false
@@ -45,26 +75,39 @@ func show_discovery(discovery: Dictionary) -> void:
 	var first_name := PlantData.get_display_name(discovery.get("first_plant_id", ""))
 	var second_name := PlantData.get_display_name(discovery.get("second_plant_id", ""))
 	var short_reason: String = discovery.get("short_reason", discovery.get("explanation", ""))
-	var type_label := PlantRelationshipData.get_type_label(discovery.get("type", PlantRelationshipData.TYPE_NEUTRAL))
 
 	show_message("%s + %s — %s" % [first_name, second_name, short_reason])
-	add_diary_entry("%s: %s + %s" % [type_label, first_name, second_name])
+	add_diary_entry(discovery)
 
-func add_diary_entry(entry: String) -> void:
-	if diary_entries.has(entry):
-		return
+func add_diary_entry(discovery: Dictionary) -> void:
+	var key: String = discovery.get("key", PlantRelationshipData.get_relationship_key(
+		discovery.get("first_plant_id", ""),
+		discovery.get("second_plant_id", "")
+	))
 
-	diary_entries.append(entry)
-	_refresh_diary()
+	for existing in diary_entries:
+		if existing.get("key", "") == key:
+			return
+
+	var stored := discovery.duplicate()
+	stored["key"] = key
+	diary_entries.append(stored)
+	_refresh_diary_list()
 
 func get_diary_entry_count() -> int:
 	return diary_entries.size()
 
 func toggle_diary() -> void:
 	_build_ui()
-	diary_overlay.visible = not diary_overlay.visible
 	if diary_overlay.visible:
-		_refresh_diary()
+		close_diary()
+	else:
+		open_diary()
+
+func open_diary() -> void:
+	_build_ui()
+	_show_list_view()
+	diary_overlay.visible = true
 
 func close_diary() -> void:
 	_build_ui()
@@ -139,7 +182,7 @@ func _build_diary_overlay() -> void:
 	diary_card = _make_card(PAPER_CREAM, ACCENT_SOIL, 32, 4)
 	diary_card.name = "DiaryCard"
 	diary_card.position = Vector2(80, 380)
-	diary_card.size = Vector2(920, 1100)
+	diary_card.size = DIARY_CARD_SIZE
 	diary_overlay.add_child(diary_card)
 
 	diary_heading = Label.new()
@@ -159,43 +202,352 @@ func _build_diary_overlay() -> void:
 	separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	diary_card.add_child(separator)
 
-	diary_label = Label.new()
-	diary_label.name = "DiaryLabel"
-	diary_label.position = Vector2(40, 110)
-	diary_label.size = Vector2(840, 880)
-	diary_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	diary_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	diary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	diary_label.add_theme_color_override("font_color", TEXT_SOFT)
-	diary_label.add_theme_font_size_override("font_size", 24)
-	diary_card.add_child(diary_label)
+	_build_list_view()
+	_build_detail_view()
+	_show_list_view()
 
-	var close_button := Button.new()
-	close_button.name = "DiaryCloseButton"
-	close_button.text = "Close"
-	close_button.position = Vector2(360, 1010)
-	close_button.size = Vector2(200, 70)
-	close_button.focus_mode = Control.FOCUS_NONE
-	_apply_close_theme(close_button)
-	close_button.pressed.connect(close_diary)
-	diary_card.add_child(close_button)
+func _build_list_view() -> void:
+	list_view = Control.new()
+	list_view.name = "DiaryListView"
+	list_view.position = Vector2(0, 100)
+	list_view.size = Vector2(DIARY_CARD_SIZE.x, DIARY_CARD_SIZE.y - 100)
+	diary_card.add_child(list_view)
 
-func _refresh_diary() -> void:
-	if diary_label == null:
+	list_scroll = ScrollContainer.new()
+	list_scroll.name = "DiaryListScroll"
+	list_scroll.position = Vector2(28, 12)
+	list_scroll.size = Vector2(DIARY_CARD_SIZE.x - 56, list_view.size.y - 110)
+	list_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	list_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	list_scroll.scroll_deadzone = 12
+	list_view.add_child(list_scroll)
+
+	list_box = VBoxContainer.new()
+	list_box.name = "DiaryListBox"
+	list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list_box.add_theme_constant_override("separation", 14)
+	list_scroll.add_child(list_box)
+
+	list_empty_label = Label.new()
+	list_empty_label.name = "DiaryEmptyLabel"
+	list_empty_label.text = "Plant neighbors and discover how they get along.\nYour first findings will appear here."
+	list_empty_label.position = Vector2(40, 80)
+	list_empty_label.size = Vector2(DIARY_CARD_SIZE.x - 80, 200)
+	list_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	list_empty_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	list_empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	list_empty_label.add_theme_color_override("font_color", TEXT_SOFT)
+	list_empty_label.add_theme_font_size_override("font_size", 24)
+	list_view.add_child(list_empty_label)
+
+	list_close_button = Button.new()
+	list_close_button.name = "DiaryCloseButton"
+	list_close_button.text = "Close"
+	list_close_button.position = Vector2((DIARY_CARD_SIZE.x - 200) / 2.0, list_view.size.y - 90)
+	list_close_button.size = Vector2(200, 70)
+	list_close_button.focus_mode = Control.FOCUS_NONE
+	_apply_pill_button_theme(list_close_button, Color("#627A4E"), Color("#3F5532"), PAPER_CREAM)
+	list_close_button.pressed.connect(close_diary)
+	list_view.add_child(list_close_button)
+
+func _build_detail_view() -> void:
+	detail_view = Control.new()
+	detail_view.name = "DiaryDetailView"
+	detail_view.position = Vector2(0, 0)
+	detail_view.size = DIARY_CARD_SIZE
+	detail_view.visible = false
+	diary_card.add_child(detail_view)
+
+	detail_back_button = Button.new()
+	detail_back_button.name = "DiaryBackButton"
+	detail_back_button.text = "< Back"
+	detail_back_button.position = Vector2(28, 28)
+	detail_back_button.size = Vector2(150, 60)
+	detail_back_button.focus_mode = Control.FOCUS_NONE
+	_apply_pill_button_theme(detail_back_button, PAPER_WARM, ACCENT_SOIL, TEXT_DEEP)
+	detail_back_button.pressed.connect(_show_list_view)
+	detail_view.add_child(detail_back_button)
+
+	var plant_tile_size := Vector2(340, 340)
+	var plant_a_origin := Vector2(80, 130)
+	var plant_b_origin := Vector2(500, 130)
+
+	detail_plant_a_panel = _make_plant_tile()
+	detail_plant_a_panel.position = plant_a_origin
+	detail_plant_a_panel.size = plant_tile_size
+	detail_view.add_child(detail_plant_a_panel)
+
+	detail_plant_a_image = TextureRect.new()
+	detail_plant_a_image.name = "PlantAImage"
+	detail_plant_a_image.position = Vector2(30, 30)
+	detail_plant_a_image.size = Vector2(280, 230)
+	detail_plant_a_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	detail_plant_a_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	detail_plant_a_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detail_plant_a_panel.add_child(detail_plant_a_image)
+
+	detail_plant_a_name = Label.new()
+	detail_plant_a_name.name = "PlantAName"
+	detail_plant_a_name.position = Vector2(0, 270)
+	detail_plant_a_name.size = Vector2(plant_tile_size.x, 50)
+	detail_plant_a_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail_plant_a_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	detail_plant_a_name.add_theme_color_override("font_color", TEXT_DEEP)
+	detail_plant_a_name.add_theme_font_size_override("font_size", 26)
+	detail_plant_a_panel.add_child(detail_plant_a_name)
+
+	var plus_label := Label.new()
+	plus_label.name = "PlusLabel"
+	plus_label.text = "+"
+	plus_label.position = Vector2(plant_a_origin.x + plant_tile_size.x, plant_a_origin.y)
+	plus_label.size = Vector2(plant_b_origin.x - plant_a_origin.x - plant_tile_size.x, plant_tile_size.y)
+	plus_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	plus_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	plus_label.add_theme_color_override("font_color", ACCENT_SOIL)
+	plus_label.add_theme_font_size_override("font_size", 64)
+	detail_view.add_child(plus_label)
+
+	detail_plant_b_panel = _make_plant_tile()
+	detail_plant_b_panel.position = plant_b_origin
+	detail_plant_b_panel.size = plant_tile_size
+	detail_view.add_child(detail_plant_b_panel)
+
+	detail_plant_b_image = TextureRect.new()
+	detail_plant_b_image.name = "PlantBImage"
+	detail_plant_b_image.position = Vector2(30, 30)
+	detail_plant_b_image.size = Vector2(280, 230)
+	detail_plant_b_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	detail_plant_b_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	detail_plant_b_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detail_plant_b_panel.add_child(detail_plant_b_image)
+
+	detail_plant_b_name = Label.new()
+	detail_plant_b_name.name = "PlantBName"
+	detail_plant_b_name.position = Vector2(0, 270)
+	detail_plant_b_name.size = Vector2(plant_tile_size.x, 50)
+	detail_plant_b_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail_plant_b_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	detail_plant_b_name.add_theme_color_override("font_color", TEXT_DEEP)
+	detail_plant_b_name.add_theme_font_size_override("font_size", 26)
+	detail_plant_b_panel.add_child(detail_plant_b_name)
+
+	detail_type_panel = Panel.new()
+	detail_type_panel.position = Vector2((DIARY_CARD_SIZE.x - 240) / 2.0, 510)
+	detail_type_panel.size = Vector2(240, 56)
+	detail_view.add_child(detail_type_panel)
+
+	detail_type_label = Label.new()
+	detail_type_label.name = "DetailTypeLabel"
+	detail_type_label.position = Vector2(0, 0)
+	detail_type_label.size = detail_type_panel.size
+	detail_type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail_type_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	detail_type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	detail_type_label.add_theme_color_override("font_color", PAPER_CREAM)
+	detail_type_label.add_theme_font_size_override("font_size", 22)
+	detail_type_panel.add_child(detail_type_label)
+
+	detail_title_label = Label.new()
+	detail_title_label.name = "DetailTitle"
+	detail_title_label.position = Vector2(60, 600)
+	detail_title_label.size = Vector2(DIARY_CARD_SIZE.x - 120, 60)
+	detail_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	detail_title_label.add_theme_color_override("font_color", TEXT_DEEP)
+	detail_title_label.add_theme_font_size_override("font_size", 30)
+	detail_view.add_child(detail_title_label)
+
+	detail_explanation_label = Label.new()
+	detail_explanation_label.name = "DetailExplanation"
+	detail_explanation_label.position = Vector2(60, 670)
+	detail_explanation_label.size = Vector2(DIARY_CARD_SIZE.x - 120, DIARY_CARD_SIZE.y - 700)
+	detail_explanation_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail_explanation_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	detail_explanation_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	detail_explanation_label.add_theme_color_override("font_color", TEXT_SOFT)
+	detail_explanation_label.add_theme_font_size_override("font_size", 22)
+	detail_view.add_child(detail_explanation_label)
+
+func _show_list_view() -> void:
+	if list_view == null:
 		return
+
+	list_view.visible = true
+	if detail_view != null:
+		detail_view.visible = false
+	_refresh_diary_list()
+
+func _show_detail_view(entry: Dictionary) -> void:
+	if detail_view == null:
+		return
+
+	list_view.visible = false
+	detail_view.visible = true
+
+	var first_id: String = entry.get("first_plant_id", "")
+	var second_id: String = entry.get("second_plant_id", "")
+	var type_id: String = entry.get("type", PlantRelationshipData.TYPE_NEUTRAL)
+
+	detail_plant_a_name.text = PlantData.get_display_name(first_id)
+	detail_plant_b_name.text = PlantData.get_display_name(second_id)
+	_set_plant_tile_image(detail_plant_a_image, first_id)
+	_set_plant_tile_image(detail_plant_b_image, second_id)
+
+	detail_type_label.text = PlantRelationshipData.get_type_label(type_id)
+	_apply_type_panel_color(detail_type_panel, type_id)
+
+	detail_title_label.text = entry.get("title", "")
+	detail_explanation_label.text = entry.get("explanation", entry.get("short_reason", ""))
+
+func _refresh_diary_list() -> void:
+	if list_box == null:
+		return
+
+	for child in list_box.get_children():
+		child.queue_free()
 
 	if diary_entries.is_empty():
 		diary_heading.text = "Garden Diary"
-		diary_label.text = "Plant neighbors and discover how they get along.\nYour first findings will appear here."
+		list_empty_label.visible = true
 		return
 
 	diary_heading.text = "Garden Diary  (%s)" % diary_entries.size()
-	var diary_text := ""
+	list_empty_label.visible = false
+
 	for entry in diary_entries:
-		if not diary_text.is_empty():
-			diary_text += "\n"
-		diary_text += "•  %s" % entry
-	diary_label.text = diary_text
+		list_box.add_child(_make_entry_button(entry))
+
+func _make_entry_button(entry: Dictionary) -> Button:
+	var button := Button.new()
+	button.custom_minimum_size = Vector2(0, 96)
+	button.focus_mode = Control.FOCUS_NONE
+	button.flat = true
+	button.pressed.connect(_show_detail_view.bind(entry))
+
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = PAPER_WARM
+	card_style.border_color = Color(ACCENT_SOIL.r, ACCENT_SOIL.g, ACCENT_SOIL.b, 0.5)
+	card_style.set_border_width_all(2)
+	card_style.set_corner_radius_all(20)
+
+	var hover_style := card_style.duplicate() as StyleBoxFlat
+	hover_style.bg_color = Color("#FFE9B5")
+
+	var pressed_style := card_style.duplicate() as StyleBoxFlat
+	pressed_style.bg_color = Color("#F4DDA4")
+
+	button.add_theme_stylebox_override("normal", card_style)
+	button.add_theme_stylebox_override("hover", hover_style)
+	button.add_theme_stylebox_override("pressed", pressed_style)
+	button.add_theme_color_override("font_color", Color(0, 0, 0, 0))
+	button.add_theme_color_override("font_hover_color", Color(0, 0, 0, 0))
+	button.add_theme_color_override("font_pressed_color", Color(0, 0, 0, 0))
+
+	var type_id: String = entry.get("type", PlantRelationshipData.TYPE_NEUTRAL)
+
+	var type_panel := Panel.new()
+	type_panel.name = "TypeBadge"
+	type_panel.position = Vector2(20, 20)
+	type_panel.size = Vector2(150, 56)
+	type_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_type_panel_color(type_panel, type_id)
+	button.add_child(type_panel)
+
+	var type_label := Label.new()
+	type_label.name = "TypeLabel"
+	type_label.text = PlantRelationshipData.get_type_label(type_id)
+	type_label.position = Vector2(0, 0)
+	type_label.size = type_panel.size
+	type_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	type_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	type_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	type_label.add_theme_color_override("font_color", PAPER_CREAM)
+	type_label.add_theme_font_size_override("font_size", 20)
+	type_panel.add_child(type_label)
+
+	var first_name := PlantData.get_display_name(entry.get("first_plant_id", ""))
+	var second_name := PlantData.get_display_name(entry.get("second_plant_id", ""))
+
+	var pair_label := Label.new()
+	pair_label.name = "PairLabel"
+	pair_label.text = "%s  +  %s" % [first_name, second_name]
+	pair_label.position = Vector2(190, 18)
+	pair_label.size = Vector2(540, 36)
+	pair_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	pair_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pair_label.add_theme_color_override("font_color", TEXT_DEEP)
+	pair_label.add_theme_font_size_override("font_size", 26)
+	button.add_child(pair_label)
+
+	var subtitle: String = entry.get("title", "")
+	var subtitle_label := Label.new()
+	subtitle_label.name = "SubtitleLabel"
+	subtitle_label.text = subtitle
+	subtitle_label.position = Vector2(190, 54)
+	subtitle_label.size = Vector2(540, 32)
+	subtitle_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	subtitle_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	subtitle_label.add_theme_color_override("font_color", TEXT_SOFT)
+	subtitle_label.add_theme_font_size_override("font_size", 20)
+	button.add_child(subtitle_label)
+
+	var arrow_label := Label.new()
+	arrow_label.name = "ArrowLabel"
+	arrow_label.text = ">"
+	arrow_label.position = Vector2(740, 0)
+	arrow_label.size = Vector2(60, 96)
+	arrow_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	arrow_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	arrow_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	arrow_label.add_theme_color_override("font_color", ACCENT_SOIL)
+	arrow_label.add_theme_font_size_override("font_size", 32)
+	button.add_child(arrow_label)
+
+	return button
+
+func _make_plant_tile() -> Panel:
+	var panel := Panel.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = PLANT_TILE_BG
+	style.border_color = PLANT_TILE_BORDER
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(28)
+	style.shadow_color = SHADOW_INK
+	style.shadow_size = 6
+	style.shadow_offset = Vector2(0, 4)
+	panel.add_theme_stylebox_override("panel", style)
+	return panel
+
+func _set_plant_tile_image(image: TextureRect, plant_id: String) -> void:
+	if image == null:
+		return
+
+	var sprite_path := PlantData.get_stage_sprite_path(plant_id, 1)
+	if sprite_path.is_empty() or not ResourceLoader.exists(sprite_path):
+		image.texture = null
+		return
+
+	image.texture = load(sprite_path)
+
+func _apply_type_panel_color(panel: Panel, type_id: String) -> void:
+	var color := _color_for_type(type_id)
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.border_color = Color(color.r * 0.7, color.g * 0.7, color.b * 0.7)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(20)
+	panel.add_theme_stylebox_override("panel", style)
+
+func _color_for_type(type_id: String) -> Color:
+	match type_id:
+		PlantRelationshipData.TYPE_GOOD:
+			return COLOR_TYPE_GOOD
+		PlantRelationshipData.TYPE_RISKY:
+			return COLOR_TYPE_RISKY
+		PlantRelationshipData.TYPE_SPECIAL:
+			return COLOR_TYPE_SPECIAL
+		_:
+			return COLOR_TYPE_NEUTRAL
 
 func _make_card(bg: Color, border: Color, radius: int, border_width: int) -> Panel:
 	var panel := Panel.new()
@@ -210,23 +562,23 @@ func _make_card(bg: Color, border: Color, radius: int, border_width: int) -> Pan
 	panel.add_theme_stylebox_override("panel", style)
 	return panel
 
-func _apply_close_theme(button: Button) -> void:
+func _apply_pill_button_theme(button: Button, bg: Color, border: Color, font_color: Color) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("#627A4E")
-	normal.border_color = Color("#3F5532")
+	normal.bg_color = bg
+	normal.border_color = border
 	normal.set_border_width_all(3)
 	normal.set_corner_radius_all(20)
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("#74905D")
+	hover.bg_color = Color(bg.r * 0.95, bg.g * 0.95, bg.b * 0.95)
 
 	var pressed := normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color("#506840")
+	pressed.bg_color = Color(bg.r * 0.88, bg.g * 0.88, bg.b * 0.88)
 
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_stylebox_override("pressed", pressed)
-	button.add_theme_color_override("font_color", PAPER_CREAM)
-	button.add_theme_color_override("font_hover_color", PAPER_CREAM)
-	button.add_theme_color_override("font_pressed_color", PAPER_CREAM)
+	button.add_theme_color_override("font_color", font_color)
+	button.add_theme_color_override("font_hover_color", font_color)
+	button.add_theme_color_override("font_pressed_color", font_color)
 	button.add_theme_font_size_override("font_size", 24)
